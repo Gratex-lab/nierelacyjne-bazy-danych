@@ -1,37 +1,23 @@
 package wypozyczalnia.objects;
 
+import org.bson.Document;
+import org.bson.types.ObjectId;
 import java.util.Objects;
-import java.util.UUID;
-import jakarta.persistence.*;
 
 /**
- * Klasa reprezentująca najemcę wypożyczalni nieruchomości. Zawiera mechanizm
- * aktywacji/deaktywacji konta oraz optymistyczne blokady wersji.
+ * Klasa reprezentująca najemcę wypożyczalni nieruchomości jako dokument MongoDB.
+ * Zawiera mechanizm aktywacji/deaktywacji konta.
  */
-@Entity
-@Table(name = "najemcy")
 public class Najemca {
 
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false)
-    private UUID id;
-
-    @Column(name = "login", unique = true, nullable = false, length = 50)
+    private ObjectId id;
     private String login;
-
-    @Column(name = "czy_aktywny", nullable = false)
     private boolean aktywny;
 
-    @Version
-    @Column(name = "version")
-    private Long version;
-
     /**
-     * Konstruktor bez argumentów wymagany przez JPA
+     * Konstruktor bez argumentów
      */
-    protected Najemca() {
-        this.login = null;
+    public Najemca() {
         this.aktywny = true;
     }
 
@@ -40,12 +26,20 @@ public class Najemca {
         this.aktywny = true;
     }
 
-    public UUID getId() {
+    public ObjectId getId() {
         return id;
+    }
+
+    public void setId(ObjectId id) {
+        this.id = id;
     }
 
     public String getLogin() {
         return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
     }
 
     public boolean czyAktywny() {
@@ -54,6 +48,34 @@ public class Najemca {
 
     public void setAktywny(boolean aktywny) {
         this.aktywny = aktywny;
+    }
+
+    /**
+     * Konwertuje obiekt do dokumentu MongoDB
+     */
+    public Document toDocument() {
+        Document document = new Document();
+        if (id != null) {
+            document.append("_id", id);
+        }
+        document.append("login", login)
+                .append("aktywny", aktywny);
+        return document;
+    }
+
+    /**
+     * Tworzy obiekt z dokumentu MongoDB
+     */
+    public static Najemca fromDocument(Document document) {
+        if (document == null) {
+            return null;
+        }
+        
+        Najemca najemca = new Najemca();
+        najemca.setId(document.getObjectId("_id"));
+        najemca.setLogin(document.getString("login"));
+        najemca.setAktywny(document.getBoolean("aktywny", true));
+        return najemca;
     }
 
     @Override
@@ -65,11 +87,20 @@ public class Najemca {
             return false;
         }
         Najemca najemca = (Najemca) o;
-        return id.equals(najemca.id);
+        return Objects.equals(id, najemca.id);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Najemca{" +
+                "id=" + id +
+                ", login='" + login + '\'' +
+                ", aktywny=" + aktywny +
+                '}';
     }
 }
