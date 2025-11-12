@@ -1,51 +1,73 @@
 package wypozyczalnia.repositories;
 
-import jakarta.persistence.EntityManager;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
+import org.bson.types.ObjectId;
 import wypozyczalnia.objects.Najem;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+
+import static com.mongodb.client.model.Filters.*;
 
 /**
- * Repozytorium dla encji Najem. Obsługuje operacje CRUD oraz zapytania
- * biznesowe.
+ * Repozytorium dla encji Najem w MongoDB.
+ * Obsługuje operacje CRUD oraz zapytania biznesowe.
  */
 public class NajemRepozytorium implements Repozytorium<Najem> {
 
-    private final EntityManager entityManager;
+    private final MongoCollection<Document> collection;
 
-    public NajemRepozytorium(EntityManager entityManager) {
-        this.entityManager = entityManager;
+    public NajemRepozytorium(MongoDatabase database) {
+        this.collection = database.getCollection("najmy");
     }
 
     @Override
     public void dodaj(Najem najem) {
-        entityManager.persist(najem);
+        Document document = najem.toDocument();
+        collection.insertOne(document);
+        // Set the generated ID back to the object
+        najem.setId(document.getObjectId("_id"));
     }
 
     @Override
     public void usun(Najem najem) {
-        entityManager.remove(najem);
+        if (najem.getId() != null) {
+            collection.deleteOne(eq("_id", najem.getId()));
+        }
     }
 
     @Override
-    public Najem znajdz(UUID najemUuid) {
-        List<Najem> najmy = entityManager.createQuery(
-                "SELECT n FROM Najem n WHERE n.id = :id", Najem.class)
-                .setParameter("id", najemUuid)
-                .getResultList();
-        return najmy.isEmpty() ? null : najmy.getFirst();
+    public Najem znajdz(ObjectId najemId) {
+        Document document = collection.find(eq("_id", najemId)).first();
+        return Najem.fromDocument(document);
     }
 
     /**
      * Znajduje najmy dla danego najemcy i nieruchomości.
      */
-    public List<Najem> znajdzNajemcowi(UUID nieruchomoscId, UUID najemcaUuid) {
-        return entityManager.createQuery(
-                "SELECT n FROM Najem n WHERE n.najemca.id = :najemcaId AND n.nieruchomosc.id = :nieruchomoscId",
-                Najem.class)
-                .setParameter("najemcaId", najemcaUuid)
-                .setParameter("nieruchomoscId", nieruchomoscId)
-                .getResultList();
+    public List<Najem> znajdzNajemcowi(ObjectId nieruchomoscId, ObjectId najemcaId) {
+        List<Najem> najmy = new ArrayList<>();
+        collection.find(and(
+                eq("najemcaId", najemcaId),
+                eq("nieruchomoscId", nieruchomoscId)
+        )).forEach(document -> {
+            Najem najem = Najem.fromDocument(document);
+            if (najem != null) {
+                najmy.add(najem);
+            }
+        });
+        return najmy;
+    }
+
+    /**
+     * Aktualizuje najem w bazie danych.
+     */
+    @Override
+    public void aktualizuj(Najem najem) {
+        if (najem.getId() != null) {
+            collection.replaceOne(eq("_id", najem.getId()), najem.toDocument());
+        }
     }
 }

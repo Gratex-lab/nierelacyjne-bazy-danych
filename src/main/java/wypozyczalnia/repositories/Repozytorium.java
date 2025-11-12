@@ -1,10 +1,10 @@
 package wypozyczalnia.repositories;
 
-import java.util.UUID;
+import org.bson.types.ObjectId;
 
 /**
- * Generyczny interfejs repozytorium dla operacji CRUD. Implementuje wzorzec
- * Repository dla wszystkich encji.
+ * Generyczny interfejs repozytorium dla operacji CRUD w MongoDB.
+ * Implementuje wzorzec Repository dla wszystkich encji.
  */
 public interface Repozytorium<T> {
 
@@ -14,12 +14,17 @@ public interface Repozytorium<T> {
     void dodaj(T obiekt);
 
     /**
+     * Znajdź encję po jej ObjectId.
+     */
+    T znajdz(ObjectId id);
+
+    /**
+     * Aktualizuje istniejącą encję w bazie danych.
+     */
+    void aktualizuj(T obiekt);
+
+    /**
      * Usuwa encję z bazy danych.
      */
     void usun(T obiekt);
-
-    /**
-     * Znajduje encję po jej UUID.
-     */
-    T znajdz(UUID uuid);
 }

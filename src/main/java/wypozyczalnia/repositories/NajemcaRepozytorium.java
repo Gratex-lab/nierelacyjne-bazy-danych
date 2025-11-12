@@ -1,48 +1,61 @@
 package wypozyczalnia.repositories;
 
-import jakarta.persistence.EntityManager;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
+import org.bson.types.ObjectId;
 import wypozyczalnia.objects.Najemca;
 
-import java.util.List;
-import java.util.UUID;
+import static com.mongodb.client.model.Filters.*;
 
 /**
- * Repozytorium dla encji Najemca. Obsługuje operacje CRUD oraz wyszukiwanie po
- * loginie.
+ * Repozytorium dla encji Najemca w MongoDB.
+ * Obsługuje operacje CRUD oraz wyszukiwanie po loginie.
  */
 public class NajemcaRepozytorium implements Repozytorium<Najemca> {
 
-    private final EntityManager entityManager;
+    private final MongoCollection<Document> collection;
 
-    public NajemcaRepozytorium(EntityManager entityManager) {
-        this.entityManager = entityManager;
+    public NajemcaRepozytorium(MongoDatabase database) {
+        this.collection = database.getCollection("najemcy");
     }
 
     @Override
     public void dodaj(Najemca najemca) {
-        entityManager.persist(najemca);
+        Document document = najemca.toDocument();
+        collection.insertOne(document);
+        // Set the generated ID back to the object
+        najemca.setId(document.getObjectId("_id"));
     }
 
     @Override
     public void usun(Najemca najemca) {
-        entityManager.remove(najemca);
+        if (najemca.getId() != null) {
+            collection.deleteOne(eq("_id", najemca.getId()));
+        }
     }
 
     @Override
-    public Najemca znajdz(UUID najemcaId) {
-        List<Najemca> najemcy = entityManager.createQuery("SELECT n FROM Najemca n WHERE n.id = :id", Najemca.class)
-                .setParameter("id", najemcaId)
-                .getResultList();
-        return najemcy.isEmpty() ? null : najemcy.getFirst();
+    public Najemca znajdz(ObjectId najemcaId) {
+        Document document = collection.find(eq("_id", najemcaId)).first();
+        return Najemca.fromDocument(document);
     }
 
     /**
      * Wyszukuje najemcę po unikalnym loginie.
      */
     public Najemca znajdzLogin(String login) {
-        List<Najemca> najemcy = entityManager.createQuery("SELECT n FROM Najemca n WHERE n.login = :login", Najemca.class)
-                .setParameter("login", login)
-                .getResultList();
-        return najemcy.isEmpty() ? null : najemcy.getFirst();
+        Document document = collection.find(eq("login", login)).first();
+        return Najemca.fromDocument(document);
+    }
+
+    /**
+     * Aktualizuje najemcę w bazie danych.
+     */
+    @Override
+    public void aktualizuj(Najemca najemca) {
+        if (najemca.getId() != null) {
+            collection.replaceOne(eq("_id", najemca.getId()), najemca.toDocument());
+        }
     }
 }
