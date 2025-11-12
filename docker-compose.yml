@@ -1,14 +1,66 @@
 services:
-  db:
-    image: postgres
+  mongo1:
+    image: mongo:7
     restart: always
-    environment:
-      POSTGRES_DB: nbddb
-      POSTGRES_USER: nbd
-      POSTGRES_PASSWORD: nbdpassword
+    command: mongod --replSet rs0 --bind_ip_all --noauth
     ports:
-      - 5444:5432
+      - "27017:27017"
     volumes:
-      - pg:/var/lib/postgresql/data
+      - mongo1_data:/data/db
+    networks:
+      - mongo-cluster
+
+  mongo2:
+    image: mongo:7
+    restart: always
+    command: mongod --replSet rs0 --bind_ip_all --noauth
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo2_data:/data/db
+    networks:
+      - mongo-cluster
+
+  mongo3:
+    image: mongo:7
+    restart: always
+    command: mongod --replSet rs0 --bind_ip_all --noauth
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongo3_data:/data/db
+    networks:
+      - mongo-cluster
+
+  mongo-setup:
+    image: mongo:7
+    depends_on:
+      - mongo1
+      - mongo2
+      - mongo3
+    networks:
+      - mongo-cluster
+    command: >
+      bash -c "
+        sleep 10;
+        mongosh --host mongo1:27017 --eval '
+          rs.initiate({
+            _id: \"rs0\",
+            members: [
+              { _id: 0, host: \"mongo1:27017\" },
+              { _id: 1, host: \"mongo2:27017\" },
+              { _id: 2, host: \"mongo3:27017\" }
+            ]
+          });
+        ';
+        echo 'Replica set initiated';
+      "
+
 volumes:
-  pg:
+  mongo1_data:
+  mongo2_data:
+  mongo3_data:
+
+networks:
+  mongo-cluster:
+    driver: bridge
