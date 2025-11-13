@@ -13,8 +13,8 @@ import java.util.Date;
 import static com.mongodb.client.model.Filters.*;
 
 /**
- * Repozytorium dla encji Nieruchomosc w MongoDB.
- * Obsługuje operacje CRUD oraz sprawdzanie dostępności nieruchomości.
+ * Repozytorium dla encji Nieruchomosc w MongoDB. Obsługuje operacje CRUD oraz
+ * sprawdzanie dostępności nieruchomości.
  */
 public class NieruchomoscRepozytorium implements Repozytorium<Nieruchomosc> {
 
@@ -30,7 +30,6 @@ public class NieruchomoscRepozytorium implements Repozytorium<Nieruchomosc> {
     public void dodaj(Nieruchomosc nieruchomosc) {
         Document document = nieruchomosc.toDocument();
         collection.insertOne(document);
-        // Set the generated ID back to the object
         nieruchomosc.setId(document.getObjectId("_id"));
     }
 
@@ -48,8 +47,8 @@ public class NieruchomoscRepozytorium implements Repozytorium<Nieruchomosc> {
     }
 
     /**
-     * Sprawdza czy nieruchomość jest zajęta w podanym okresie.
-     * Wykorzystuje transakcje MongoDB dla zapewnienia spójności.
+     * Sprawdza czy nieruchomość jest zajęta w podanym okresie. Wykorzystuje
+     * transakcje MongoDB dla zapewnienia spójności.
      */
     public boolean czyJestZajeta(Nieruchomosc nieruchomosc, LocalDateTime start, LocalDateTime koniec) {
         Date startDate = Date.from(start.atZone(ZoneId.systemDefault()).toInstant());
@@ -57,10 +56,10 @@ public class NieruchomoscRepozytorium implements Repozytorium<Nieruchomosc> {
 
         Document query = new Document("nieruchomoscId", nieruchomosc.getId())
                 .append("$or", java.util.Arrays.asList(
-                    new Document("$and", java.util.Arrays.asList(
-                        new Document("dataRozpoczecia", new Document("$lt", endDate)),
-                        new Document("dataZakonczenia", new Document("$gt", startDate))
-                    ))
+                        new Document("$and", java.util.Arrays.asList(
+                                new Document("dataRozpoczecia", new Document("$lt", endDate)),
+                                new Document("dataZakonczenia", new Document("$gt", startDate))
+                        ))
                 ));
 
         long count = najmyCollection.countDocuments(query);

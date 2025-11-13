@@ -5,8 +5,8 @@ import org.bson.types.ObjectId;
 import java.util.Objects;
 
 /**
- * Klasa reprezentująca najemcę wypożyczalni nieruchomości jako dokument MongoDB.
- * Zawiera mechanizm aktywacji/deaktywacji konta.
+ * Klasa reprezentująca najemcę wypożyczalni nieruchomości jako dokument
+ * MongoDB. Zawiera mechanizm aktywacji/deaktywacji konta.
  */
 public class Najemca {
 
@@ -70,7 +70,7 @@ public class Najemca {
         if (document == null) {
             return null;
         }
-        
+
         Najemca najemca = new Najemca();
         najemca.setId(document.getObjectId("_id"));
         najemca.setLogin(document.getString("login"));
@@ -97,10 +97,10 @@ public class Najemca {
 
     @Override
     public String toString() {
-        return "Najemca{" +
-                "id=" + id +
-                ", login='" + login + '\'' +
-                ", aktywny=" + aktywny +
-                '}';
+        return "Najemca{"
+                + "id=" + id
+                + ", login='" + login + '\''
+                + ", aktywny=" + aktywny
+                + '}';
     }
 }

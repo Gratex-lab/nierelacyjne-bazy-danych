@@ -21,7 +21,6 @@ public class Najem {
     private LocalDateTime dataRozpoczecia;
     private LocalDateTime dataZakonczenia;
 
-    // Cached objects for convenience
     private Najemca najemca;
     private Nieruchomosc nieruchomosc;
 
@@ -125,22 +124,22 @@ public class Najem {
         if (document == null) {
             return null;
         }
-        
+
         Najem najem = new Najem();
         najem.setId(document.getObjectId("_id"));
         najem.setNajemcaId(document.getObjectId("najemcaId"));
         najem.setNieruchomoscId(document.getObjectId("nieruchomoscId"));
-        
+
         Date dataRozpoczecia = document.getDate("dataRozpoczecia");
         Date dataZakonczenia = document.getDate("dataZakonczenia");
-        
+
         if (dataRozpoczecia != null) {
             najem.setDataRozpoczecia(LocalDateTime.ofInstant(dataRozpoczecia.toInstant(), ZoneId.systemDefault()).withNano(0));
         }
         if (dataZakonczenia != null) {
             najem.setDataZakonczenia(LocalDateTime.ofInstant(dataZakonczenia.toInstant(), ZoneId.systemDefault()).withNano(0));
         }
-        
+
         return najem;
     }
 
@@ -163,12 +162,12 @@ public class Najem {
 
     @Override
     public String toString() {
-        return "Najem{" +
-                "id=" + id +
-                ", najemcaId=" + najemcaId +
-                ", nieruchomoscId=" + nieruchomoscId +
-                ", dataRozpoczecia=" + dataRozpoczecia +
-                ", dataZakonczenia=" + dataZakonczenia +
-                '}';
+        return "Najem{"
+                + "id=" + id
+                + ", najemcaId=" + najemcaId
+                + ", nieruchomoscId=" + nieruchomoscId
+                + ", dataRozpoczecia=" + dataRozpoczecia
+                + ", dataZakonczenia=" + dataZakonczenia
+                + '}';
     }
 }

@@ -12,8 +12,8 @@ import java.util.List;
 import static com.mongodb.client.model.Filters.*;
 
 /**
- * Repozytorium dla encji Najem w MongoDB.
- * Obsługuje operacje CRUD oraz zapytania biznesowe.
+ * Repozytorium dla encji Najem w MongoDB. Obsługuje operacje CRUD oraz
+ * zapytania biznesowe.
  */
 public class NajemRepozytorium implements Repozytorium<Najem> {
 

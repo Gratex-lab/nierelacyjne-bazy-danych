@@ -9,8 +9,8 @@ import wypozyczalnia.objects.Najemca;
 import static com.mongodb.client.model.Filters.*;
 
 /**
- * Repozytorium dla encji Najemca w MongoDB.
- * Obsługuje operacje CRUD oraz wyszukiwanie po loginie.
+ * Repozytorium dla encji Najemca w MongoDB. Obsługuje operacje CRUD oraz
+ * wyszukiwanie po loginie.
  */
 public class NajemcaRepozytorium implements Repozytorium<Najemca> {
 
@@ -24,7 +24,6 @@ public class NajemcaRepozytorium implements Repozytorium<Najemca> {
     public void dodaj(Najemca najemca) {
         Document document = najemca.toDocument();
         collection.insertOne(document);
-        // Set the generated ID back to the object
         najemca.setId(document.getObjectId("_id"));
     }
 

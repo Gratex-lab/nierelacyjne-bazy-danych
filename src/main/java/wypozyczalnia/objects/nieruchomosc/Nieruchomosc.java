@@ -5,8 +5,8 @@ import org.bson.types.ObjectId;
 import java.util.Objects;
 
 /**
- * Abstrakcyjna klasa reprezentująca nieruchomość w wypożyczalni jako dokument MongoDB.
- * Implementuje dziedziczenie poprzez pole typu.
+ * Abstrakcyjna klasa reprezentująca nieruchomość w wypożyczalni jako dokument
+ * MongoDB. Implementuje dziedziczenie poprzez pole typu.
  */
 public abstract class Nieruchomosc {
 
@@ -111,7 +111,7 @@ public abstract class Nieruchomosc {
         if (document == null) {
             return null;
         }
-        
+
         String typ = document.getString("typ");
         if ("mieszkanie".equals(typ)) {
             return Mieszkanie.fromDocument(document);
@@ -140,12 +140,12 @@ public abstract class Nieruchomosc {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{" +
-                "id=" + id +
-                ", miasto='" + miasto + '\'' +
-                ", dzielnica='" + dzielnica + '\'' +
-                ", adres='" + adres + '\'' +
-                ", typ='" + typ + '\'' +
-                '}';
+        return getClass().getSimpleName() + "{"
+                + "id=" + id
+                + ", miasto='" + miasto + '\''
+                + ", dzielnica='" + dzielnica + '\''
+                + ", adres='" + adres + '\''
+                + ", typ='" + typ + '\''
+                + '}';
     }
 }

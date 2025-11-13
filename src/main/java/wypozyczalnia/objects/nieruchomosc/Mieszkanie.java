@@ -76,14 +76,14 @@ public class Mieszkanie extends Nieruchomosc {
 
     @Override
     public String toString() {
-        return "Mieszkanie{" +
-                "id=" + id +
-                ", miasto='" + miasto + '\'' +
-                ", dzielnica='" + dzielnica + '\'' +
-                ", adres='" + adres + '\'' +
-                ", liczbaPokoi=" + liczbaPokoi +
-                ", typOgrzewania='" + typOgrzewania + '\'' +
-                ", czyUmeblowane=" + czyUmeblowane +
-                '}';
+        return "Mieszkanie{"
+                + "id=" + id
+                + ", miasto='" + miasto + '\''
+                + ", dzielnica='" + dzielnica + '\''
+                + ", adres='" + adres + '\''
+                + ", liczbaPokoi=" + liczbaPokoi
+                + ", typOgrzewania='" + typOgrzewania + '\''
+                + ", czyUmeblowane=" + czyUmeblowane
+                + '}';
     }
 }

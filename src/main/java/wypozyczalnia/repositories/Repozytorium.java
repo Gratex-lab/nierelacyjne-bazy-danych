@@ -3,8 +3,8 @@ package wypozyczalnia.repositories;
 import org.bson.types.ObjectId;
 
 /**
- * Generyczny interfejs repozytorium dla operacji CRUD w MongoDB.
- * Implementuje wzorzec Repository dla wszystkich encji.
+ * Generyczny interfejs repozytorium dla operacji CRUD w MongoDB. Implementuje
+ * wzorzec Repository dla wszystkich encji.
  */
 public interface Repozytorium<T> {
 

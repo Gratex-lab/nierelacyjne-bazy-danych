@@ -4,8 +4,8 @@ import org.bson.Document;
 import java.util.Objects;
 
 /**
- * Klasa reprezentująca dom w wypożyczalni jako dokument MongoDB.
- * Dziedziczy po klasie Nieruchomosc.
+ * Klasa reprezentująca dom w wypożyczalni jako dokument MongoDB. Dziedziczy po
+ * klasie Nieruchomosc.
  */
 public class Dom extends Nieruchomosc {
 
@@ -76,14 +76,14 @@ public class Dom extends Nieruchomosc {
 
     @Override
     public String toString() {
-        return "Dom{" +
-                "id=" + id +
-                ", miasto='" + miasto + '\'' +
-                ", dzielnica='" + dzielnica + '\'' +
-                ", adres='" + adres + '\'' +
-                ", powierzchniaDzialki=" + powierzchniaDzialki +
-                ", typBudynku='" + typBudynku + '\'' +
-                ", czyZOgrodem=" + czyZOgrodem +
-                '}';
+        return "Dom{"
+                + "id=" + id
+                + ", miasto='" + miasto + '\''
+                + ", dzielnica='" + dzielnica + '\''
+                + ", adres='" + adres + '\''
+                + ", powierzchniaDzialki=" + powierzchniaDzialki
+                + ", typBudynku='" + typBudynku + '\''
+                + ", czyZOgrodem=" + czyZOgrodem
+                + '}';
     }
 }
