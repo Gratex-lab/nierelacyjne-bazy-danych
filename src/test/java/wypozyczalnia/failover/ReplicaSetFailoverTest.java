@@ -28,7 +28,7 @@ class ReplicaSetFailoverTest {
 
     @BeforeAll
     static void setUpConnection() {
-        String connectionString = "mongodb://localhost:27017,localhost:27018,localhost:27019/test_failover_db?replicaSet=rs0&retryWrites=true&w=majority";
+        String connectionString = "mongodb://admin:adminpassword@localhost:27017,localhost:27018,localhost:27019/test_failover_db?replicaSet=replica_set_single&retryWrites=true&w=majority&authSource=admin";
         CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
         CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
 
@@ -114,7 +114,7 @@ class ReplicaSetFailoverTest {
         najemcaManager.dodajNajemce(przed);
         ObjectId idPrzed = przed.getId();
 
-        stopDockerContainer("mongo1");
+        stopDockerContainer("mongodb1");
         waitForClusterStabilization();
 
         Najemca po = new Najemca("po_failover");
@@ -129,7 +129,7 @@ class ReplicaSetFailoverTest {
         assertDoesNotThrow(() -> najemcaManager.aktualizujNajemce(po));
         assertDoesNotThrow(() -> najemcaRepozytorium.usun(po));
 
-        startDockerContainer("mongo1");
+        startDockerContainer("mongodb1");
         waitForClusterStabilization();
     }
 
@@ -148,7 +148,7 @@ class ReplicaSetFailoverTest {
         ObjectId id2 = n2.getId();
         ObjectId id3 = n3.getId();
 
-        stopDockerContainer("mongo2");
+        stopDockerContainer("mongodb2");
         waitForClusterStabilization();
 
         Najemca check1 = najemcaRepozytorium.znajdz(id1);
@@ -162,7 +162,7 @@ class ReplicaSetFailoverTest {
         assertEquals("spojnosc_2", check2.getLogin());
         assertEquals("spojnosc_3", check3.getLogin());
 
-        startDockerContainer("mongo2");
+        startDockerContainer("mongodb2");
         waitForClusterStabilization();
 
         check1 = najemcaRepozytorium.znajdz(id1);
