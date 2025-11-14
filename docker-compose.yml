@@ -2,6 +2,8 @@ services:
   mongo1:
     image: mongo:7
     restart: always
+    container_name: mongo1
+    hostname: mongo1
     command: mongod --replSet rs0 --bind_ip_all --noauth
     ports:
       - "27017:27017"
@@ -13,6 +15,8 @@ services:
   mongo2:
     image: mongo:7
     restart: always
+    container_name: mongo2
+    hostname: mongo2
     command: mongod --replSet rs0 --bind_ip_all --noauth
     ports:
       - "27018:27017"
@@ -24,6 +28,8 @@ services:
   mongo3:
     image: mongo:7
     restart: always
+    container_name: mongo3
+    hostname: mongo3
     command: mongod --replSet rs0 --bind_ip_all --noauth
     ports:
       - "27019:27017"
