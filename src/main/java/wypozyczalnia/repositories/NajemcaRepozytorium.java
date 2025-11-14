@@ -2,7 +2,6 @@ package wypozyczalnia.repositories;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
 import org.bson.types.ObjectId;
 import wypozyczalnia.objects.Najemca;
 

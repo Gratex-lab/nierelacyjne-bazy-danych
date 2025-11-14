@@ -1,6 +1,12 @@
 package wypozyczalnia.repositories;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,13 +16,16 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import wypozyczalnia.objects.Najemca;
 
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 class NajemcaRepozytoriumTest {
 
     @Container
-    static MongoDBContainer mongoContainer = new MongoDBContainer("mongo:7");
+    static MongoDBContainer mongoContainer = new MongoDBContainer("mongo:8.0.1");
 
     private MongoDatabase database;
     private NajemcaRepozytorium repository;
@@ -24,8 +33,17 @@ class NajemcaRepozytoriumTest {
     @BeforeEach
     void setUp() {
         String connectionString = mongoContainer.getReplicaSetUrl();
-        database = com.mongodb.client.MongoClients.create(connectionString)
-                .getDatabase("test_db");
+
+        CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
+        CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
+
+        MongoClientSettings settings = MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(connectionString))
+                .codecRegistry(codecRegistry)
+                .build();
+
+        MongoClient mongoClient = MongoClients.create(settings);
+        database = mongoClient.getDatabase("test_db");
         repository = new NajemcaRepozytorium(database);
     }
 
@@ -45,7 +63,7 @@ class NajemcaRepozytoriumTest {
         Najemca znaleziony = repository.znajdz(najemca.getId());
         assertNotNull(znaleziony);
         assertEquals("testLogin", znaleziony.getLogin());
-        assertTrue(znaleziony.czyAktywny());
+        assertTrue(znaleziony.isActive());
     }
 
     @Test
@@ -81,12 +99,12 @@ class NajemcaRepozytoriumTest {
         Najemca najemca = new Najemca("login_do_aktualizacji");
         repository.dodaj(najemca);
 
-        najemca.setAktywny(false);
+        najemca.setActive(false);
         repository.aktualizuj(najemca);
 
         Najemca zaktualizowany = repository.znajdz(najemca.getId());
         assertNotNull(zaktualizowany);
-        assertFalse(zaktualizowany.czyAktywny());
+        assertFalse(zaktualizowany.isActive());
     }
 
     @Test

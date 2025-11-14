@@ -1,6 +1,12 @@
 package wypozyczalnia.integration;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +19,9 @@ import wypozyczalnia.managers.NieruchomoscManager;
 import wypozyczalnia.objects.Najemca;
 import wypozyczalnia.objects.nieruchomosc.Mieszkanie;
 
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class IntegrationTest {
 
     @Container
-    static MongoDBContainer mongoContainer = new MongoDBContainer("mongo:7");
+    static MongoDBContainer mongoContainer = new MongoDBContainer("mongo:8.0.1");
 
     private MongoDatabase database;
     private NajemcaManager najemcaManager;
@@ -31,8 +40,17 @@ class IntegrationTest {
     @BeforeEach
     void setUp() {
         String connectionString = mongoContainer.getReplicaSetUrl();
-        database = com.mongodb.client.MongoClients.create(connectionString)
-                .getDatabase("integration_test_db");
+
+        CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
+        CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
+
+        MongoClientSettings settings = MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(connectionString))
+                .codecRegistry(codecRegistry)
+                .build();
+
+        MongoClient mongoClient = MongoClients.create(settings);
+        database = mongoClient.getDatabase("integration_test_db");
 
         najemcaManager = new NajemcaManager(database);
         nieruchomoscManager = new NieruchomoscManager(database);
@@ -113,7 +131,7 @@ class IntegrationTest {
     @Test
     void testNieaktywnyNajemca() {
         Najemca najemca = new Najemca("nieaktywnyTest");
-        najemca.setAktywny(false);
+        najemca.setActive(false);
         najemcaManager.dodajNajemce(najemca);
 
         Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Nieaktywny 1", 2, "gazowe", false);

@@ -1,6 +1,12 @@
 package wypozyczalnia.repositories;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,13 +21,16 @@ import wypozyczalnia.objects.nieruchomosc.Mieszkanie;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 class NajemRepozytoriumTest {
 
     @Container
-    static MongoDBContainer mongoContainer = new MongoDBContainer("mongo:7");
+    static MongoDBContainer mongoContainer = new MongoDBContainer("mongo:8.0.1");
 
     private MongoDatabase database;
     private NajemRepozytorium najemRepository;
@@ -31,8 +40,17 @@ class NajemRepozytoriumTest {
     @BeforeEach
     void setUp() {
         String connectionString = mongoContainer.getReplicaSetUrl();
-        database = com.mongodb.client.MongoClients.create(connectionString)
-                .getDatabase("test_db");
+
+        CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
+        CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
+
+        MongoClientSettings settings = MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(connectionString))
+                .codecRegistry(codecRegistry)
+                .build();
+
+        MongoClient mongoClient = MongoClients.create(settings);
+        database = mongoClient.getDatabase("test_db");
         najemRepository = new NajemRepozytorium(database);
         najemcaRepository = new NajemcaRepozytorium(database);
         nieruchomoscRepository = new NieruchomoscRepozytorium(database);
