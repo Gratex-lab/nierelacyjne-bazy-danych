@@ -14,17 +14,15 @@ import static com.mongodb.client.model.Filters.*;
  */
 public class NajemcaRepozytorium implements Repozytorium<Najemca> {
 
-    private final MongoCollection<Document> collection;
+    private final MongoCollection<Najemca> collection;
 
     public NajemcaRepozytorium(MongoDatabase database) {
-        this.collection = database.getCollection("najemcy");
+        this.collection = database.getCollection("najemcy", Najemca.class);
     }
 
     @Override
     public void dodaj(Najemca najemca) {
-        Document document = najemca.toDocument();
-        collection.insertOne(document);
-        najemca.setId(document.getObjectId("_id"));
+        collection.insertOne(najemca);
     }
 
     @Override
@@ -36,16 +34,14 @@ public class NajemcaRepozytorium implements Repozytorium<Najemca> {
 
     @Override
     public Najemca znajdz(ObjectId najemcaId) {
-        Document document = collection.find(eq("_id", najemcaId)).first();
-        return Najemca.fromDocument(document);
+        return collection.find(eq("_id", najemcaId)).first();
     }
 
     /**
      * Wyszukuje najemcę po unikalnym loginie.
      */
     public Najemca znajdzLogin(String login) {
-        Document document = collection.find(eq("login", login)).first();
-        return Najemca.fromDocument(document);
+        return collection.find(eq("login", login)).first();
     }
 
     /**
@@ -54,7 +50,7 @@ public class NajemcaRepozytorium implements Repozytorium<Najemca> {
     @Override
     public void aktualizuj(Najemca najemca) {
         if (najemca.getId() != null) {
-            collection.replaceOne(eq("_id", najemca.getId()), najemca.toDocument());
+            collection.replaceOne(eq("_id", najemca.getId()), najemca);
         }
     }
 }

@@ -36,7 +36,7 @@ public class Main {
 
         // Jeden nieaktywny najemca
         Najemca najemcaNieaktywny = new Najemca("maria_zablokowana");
-        najemcaNieaktywny.setAktywny(false);
+        najemcaNieaktywny.setActive(false);
 
         najemcaManager.dodajNajemce(najemca1);
         najemcaManager.dodajNajemce(najemca2);

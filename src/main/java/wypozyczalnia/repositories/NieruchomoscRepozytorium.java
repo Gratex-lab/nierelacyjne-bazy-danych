@@ -5,6 +5,7 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import wypozyczalnia.objects.nieruchomosc.Nieruchomosc;
+import wypozyczalnia.objects.Najem;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -18,19 +19,17 @@ import static com.mongodb.client.model.Filters.*;
  */
 public class NieruchomoscRepozytorium implements Repozytorium<Nieruchomosc> {
 
-    private final MongoCollection<Document> collection;
-    private final MongoCollection<Document> najmyCollection;
+    private final MongoCollection<Nieruchomosc> collection;
+    private final MongoCollection<Najem> najmyCollection;
 
     public NieruchomoscRepozytorium(MongoDatabase database) {
-        this.collection = database.getCollection("nieruchomosci");
-        this.najmyCollection = database.getCollection("najmy");
+        this.collection = database.getCollection("nieruchomosci", Nieruchomosc.class);
+        this.najmyCollection = database.getCollection("najmy", Najem.class);
     }
 
     @Override
     public void dodaj(Nieruchomosc nieruchomosc) {
-        Document document = nieruchomosc.toDocument();
-        collection.insertOne(document);
-        nieruchomosc.setId(document.getObjectId("_id"));
+        collection.insertOne(nieruchomosc);
     }
 
     @Override
@@ -42,8 +41,7 @@ public class NieruchomoscRepozytorium implements Repozytorium<Nieruchomosc> {
 
     @Override
     public Nieruchomosc znajdz(ObjectId nieruchomoscId) {
-        Document document = collection.find(eq("_id", nieruchomoscId)).first();
-        return Nieruchomosc.fromDocument(document);
+        return collection.find(eq("_id", nieruchomoscId)).first();
     }
 
     /**
@@ -72,7 +70,7 @@ public class NieruchomoscRepozytorium implements Repozytorium<Nieruchomosc> {
     @Override
     public void aktualizuj(Nieruchomosc nieruchomosc) {
         if (nieruchomosc.getId() != null) {
-            collection.replaceOne(eq("_id", nieruchomosc.getId()), nieruchomosc.toDocument());
+            collection.replaceOne(eq("_id", nieruchomosc.getId()), nieruchomosc);
         }
     }
 }

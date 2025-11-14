@@ -45,7 +45,7 @@ public class NajemManager {
                 throw new IllegalArgumentException("Najemca lub nieruchomość nie istnieje w bazie.");
             }
 
-            if (!zarzadzanyNajemca.czyAktywny()) {
+            if (!zarzadzanyNajemca.isActive()) {
                 throw new IllegalStateException("Najemca jest nieaktywny.");
             }
 

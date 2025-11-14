@@ -2,7 +2,6 @@ package wypozyczalnia.repositories;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
 import org.bson.types.ObjectId;
 import wypozyczalnia.objects.Najem;
 
@@ -17,18 +16,15 @@ import static com.mongodb.client.model.Filters.*;
  */
 public class NajemRepozytorium implements Repozytorium<Najem> {
 
-    private final MongoCollection<Document> collection;
+    private final MongoCollection<Najem> collection;
 
     public NajemRepozytorium(MongoDatabase database) {
-        this.collection = database.getCollection("najmy");
+        this.collection = database.getCollection("najmy", Najem.class);
     }
 
     @Override
     public void dodaj(Najem najem) {
-        Document document = najem.toDocument();
-        collection.insertOne(document);
-        // Set the generated ID back to the object
-        najem.setId(document.getObjectId("_id"));
+        collection.insertOne(najem);
     }
 
     @Override
@@ -40,8 +36,7 @@ public class NajemRepozytorium implements Repozytorium<Najem> {
 
     @Override
     public Najem znajdz(ObjectId najemId) {
-        Document document = collection.find(eq("_id", najemId)).first();
-        return Najem.fromDocument(document);
+        return collection.find(eq("_id", najemId)).first();
     }
 
     /**
@@ -52,12 +47,7 @@ public class NajemRepozytorium implements Repozytorium<Najem> {
         collection.find(and(
                 eq("najemcaId", najemcaId),
                 eq("nieruchomoscId", nieruchomoscId)
-        )).forEach(document -> {
-            Najem najem = Najem.fromDocument(document);
-            if (najem != null) {
-                najmy.add(najem);
-            }
-        });
+        )).forEach(najmy::add);
         return najmy;
     }
 
@@ -67,7 +57,7 @@ public class NajemRepozytorium implements Repozytorium<Najem> {
     @Override
     public void aktualizuj(Najem najem) {
         if (najem.getId() != null) {
-            collection.replaceOne(eq("_id", najem.getId()), najem.toDocument());
+            collection.replaceOne(eq("_id", najem.getId()), najem);
         }
     }
 }

@@ -54,10 +54,15 @@ public class SchemaValidation {
             database.createCollection("najemcy", options);
         } catch (Exception e) {
             // Kolekcja już istnieje, aktualizujemy walidację
-            database.runCommand(new Document("collMod", "najemcy")
-                    .append("validator", schema)
-                    .append("validationLevel", "strict")
-                    .append("validationAction", "error"));
+            try {
+                database.runCommand(new Document("collMod", "najemcy")
+                        .append("validator", schema)
+                        .append("validationLevel", "strict")
+                        .append("validationAction", "error"));
+            } catch (Exception modException) {
+                // Ignoruj błąd jeśli kolekcja nie istnieje
+                System.out.println("Nie można zmodyfikować walidacji dla kolekcji najemcy: " + modException.getMessage());
+            }
         }
 
         // Tworzenie unikalnego indeksu na login
@@ -105,7 +110,7 @@ public class SchemaValidation {
                                 .append("minimum", 1))
                         .append("typBudynku", new Document()
                                 .append("bsonType", "string")
-                                .append("enum", java.util.Arrays.asList("jednorodzinny", "bliźniak", "szeregowy")))
+                                .append("enum", java.util.Arrays.asList("jednorodzinny", "bliźniak", "szeregowy", "letniskowy")))
                         .append("czyZOgrodem", new Document("bsonType", "bool")))
                 .append("oneOf", java.util.Arrays.asList(
                         // Walidacja dla mieszkania
@@ -134,10 +139,15 @@ public class SchemaValidation {
         try {
             database.createCollection("nieruchomosci", options);
         } catch (Exception e) {
-            database.runCommand(new Document("collMod", "nieruchomosci")
-                    .append("validator", schema)
-                    .append("validationLevel", "strict")
-                    .append("validationAction", "error"));
+            try {
+                database.runCommand(new Document("collMod", "nieruchomosci")
+                        .append("validator", schema)
+                        .append("validationLevel", "strict")
+                        .append("validationAction", "error"));
+            } catch (Exception modException) {
+                // Ignoruj błąd jeśli kolekcja nie istnieje
+                System.out.println("Nie można zmodyfikować walidacji dla kolekcji nieruchomosci: " + modException.getMessage());
+            }
         }
 
         // Tworzenie unikalnego indeksu na adres
@@ -179,10 +189,15 @@ public class SchemaValidation {
         try {
             database.createCollection("najmy", options);
         } catch (Exception e) {
-            database.runCommand(new Document("collMod", "najmy")
-                    .append("validator", schema)
-                    .append("validationLevel", "strict")
-                    .append("validationAction", "error"));
+            try {
+                database.runCommand(new Document("collMod", "najmy")
+                        .append("validator", schema)
+                        .append("validationLevel", "strict")
+                        .append("validationAction", "error"));
+            } catch (Exception modException) {
+                // Ignoruj błąd jeśli kolekcja nie istnieje
+                System.out.println("Nie można zmodyfikować walidacji dla kolekcji najmy: " + modException.getMessage());
+            }
         }
 
         // Tworzenie indeksów dla optymalizacji zapytań

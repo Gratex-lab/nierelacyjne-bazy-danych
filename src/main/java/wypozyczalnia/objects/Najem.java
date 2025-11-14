@@ -1,12 +1,12 @@
 package wypozyczalnia.objects;
 
-import org.bson.Document;
+import org.bson.codecs.pojo.annotations.BsonCreator;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
 import wypozyczalnia.objects.nieruchomosc.Nieruchomosc;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -15,14 +15,24 @@ import java.util.Objects;
  */
 public class Najem {
 
+    @BsonId
     private ObjectId id;
+
+    @BsonProperty("najemcaId")
     private ObjectId najemcaId;
+
+    @BsonProperty("nieruchomoscId")
     private ObjectId nieruchomoscId;
+
+    @BsonProperty("dataRozpoczecia")
     private LocalDateTime dataRozpoczecia;
+
+    @BsonProperty("dataZakonczenia")
     private LocalDateTime dataZakonczenia;
 
-    private Najemca najemca;
-    private Nieruchomosc nieruchomosc;
+    // Transient fields - nie będą serializowane do MongoDB
+    private transient Najemca najemca;
+    private transient Nieruchomosc nieruchomosc;
 
     public Najem() {
     }
@@ -32,6 +42,22 @@ public class Najem {
         this.nieruchomosc = Objects.requireNonNull(nieruchomosc, "Nieruchomość nie może być nullem");
         this.najemcaId = najemca.getId();
         this.nieruchomoscId = nieruchomosc.getId();
+        this.dataRozpoczecia = Objects.requireNonNull(dataRozpoczecia, "Data rozpoczęcia nie może być nullem");
+        this.dataZakonczenia = Objects.requireNonNull(dataZakonczenia, "Data zakończenia nie może być nullem");
+
+        if (dataZakonczenia.isBefore(dataRozpoczecia)) {
+            throw new IllegalArgumentException("Data zakończenia musi być po dacie rozpoczęcia.");
+        }
+    }
+
+    @BsonCreator
+    public Najem(
+            @BsonProperty("najemcaId") ObjectId najemcaId,
+            @BsonProperty("nieruchomoscId") ObjectId nieruchomoscId,
+            @BsonProperty("dataRozpoczecia") LocalDateTime dataRozpoczecia,
+            @BsonProperty("dataZakonczenia") LocalDateTime dataZakonczenia) {
+        this.najemcaId = Objects.requireNonNull(najemcaId, "ID najemcy nie może być nullem");
+        this.nieruchomoscId = Objects.requireNonNull(nieruchomoscId, "ID nieruchomości nie może być nullem");
         this.dataRozpoczecia = Objects.requireNonNull(dataRozpoczecia, "Data rozpoczęcia nie może być nullem");
         this.dataZakonczenia = Objects.requireNonNull(dataZakonczenia, "Data zakończenia nie może być nullem");
 
@@ -100,47 +126,6 @@ public class Najem {
 
     public void setDataZakonczenia(LocalDateTime dataZakonczenia) {
         this.dataZakonczenia = dataZakonczenia;
-    }
-
-    /**
-     * Konwertuje obiekt do dokumentu MongoDB
-     */
-    public Document toDocument() {
-        Document document = new Document();
-        if (id != null) {
-            document.append("_id", id);
-        }
-        document.append("najemcaId", najemcaId)
-                .append("nieruchomoscId", nieruchomoscId)
-                .append("dataRozpoczecia", Date.from(dataRozpoczecia.withNano(0).atZone(ZoneId.systemDefault()).toInstant()))
-                .append("dataZakonczenia", Date.from(dataZakonczenia.withNano(0).atZone(ZoneId.systemDefault()).toInstant()));
-        return document;
-    }
-
-    /**
-     * Tworzy obiekt z dokumentu MongoDB
-     */
-    public static Najem fromDocument(Document document) {
-        if (document == null) {
-            return null;
-        }
-
-        Najem najem = new Najem();
-        najem.setId(document.getObjectId("_id"));
-        najem.setNajemcaId(document.getObjectId("najemcaId"));
-        najem.setNieruchomoscId(document.getObjectId("nieruchomoscId"));
-
-        Date dataRozpoczecia = document.getDate("dataRozpoczecia");
-        Date dataZakonczenia = document.getDate("dataZakonczenia");
-
-        if (dataRozpoczecia != null) {
-            najem.setDataRozpoczecia(LocalDateTime.ofInstant(dataRozpoczecia.toInstant(), ZoneId.systemDefault()).withNano(0));
-        }
-        if (dataZakonczenia != null) {
-            najem.setDataZakonczenia(LocalDateTime.ofInstant(dataZakonczenia.toInstant(), ZoneId.systemDefault()).withNano(0));
-        }
-
-        return najem;
     }
 
     @Override

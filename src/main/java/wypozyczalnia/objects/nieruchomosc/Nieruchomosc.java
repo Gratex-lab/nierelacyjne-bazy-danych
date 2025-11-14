@@ -1,6 +1,9 @@
 package wypozyczalnia.objects.nieruchomosc;
 
-import org.bson.Document;
+import org.bson.codecs.pojo.annotations.BsonCreator;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonProperty;
+import org.bson.codecs.pojo.annotations.BsonDiscriminator;
 import org.bson.types.ObjectId;
 import java.util.Objects;
 
@@ -8,18 +11,33 @@ import java.util.Objects;
  * Abstrakcyjna klasa reprezentująca nieruchomość w wypożyczalni jako dokument
  * MongoDB. Implementuje dziedziczenie poprzez pole typu.
  */
+@BsonDiscriminator(key = "typ")
 public abstract class Nieruchomosc {
 
+    @BsonId
     protected ObjectId id;
+
+    @BsonProperty("miasto")
     protected String miasto;
+
+    @BsonProperty("dzielnica")
     protected String dzielnica;
+
+    @BsonProperty("adres")
     protected String adres;
+
+    @BsonProperty("typ")
     protected String typ; // "mieszkanie" lub "dom"
 
     protected Nieruchomosc() {
     }
 
-    public Nieruchomosc(String miasto, String dzielnica, String adres, String typ) {
+    @BsonCreator
+    public Nieruchomosc(
+            @BsonProperty("miasto") String miasto,
+            @BsonProperty("dzielnica") String dzielnica,
+            @BsonProperty("adres") String adres,
+            @BsonProperty("typ") String typ) {
         this.miasto = Objects.requireNonNull(miasto, "Miasto nie może być nullem");
         this.dzielnica = Objects.requireNonNull(dzielnica, "Dzielnica nie może być nullem");
         this.adres = Objects.requireNonNull(adres, "Adres nie może być nullem");
@@ -71,54 +89,6 @@ public abstract class Nieruchomosc {
      */
     public String getPelnyAdres() {
         return miasto + ", " + dzielnica + ", " + adres;
-    }
-
-    /**
-     * Konwertuje obiekt do dokumentu MongoDB
-     */
-    public abstract Document toDocument();
-
-    /**
-     * Tworzy bazowy dokument z wspólnymi polami
-     */
-    protected Document createBaseDocument() {
-        Document document = new Document();
-        if (id != null) {
-            document.append("_id", id);
-        }
-        document.append("miasto", miasto)
-                .append("dzielnica", dzielnica)
-                .append("adres", adres)
-                .append("typ", typ);
-        return document;
-    }
-
-    /**
-     * Wypełnia bazowe pola z dokumentu
-     */
-    protected void fillBaseFields(Document document) {
-        this.id = document.getObjectId("_id");
-        this.miasto = document.getString("miasto");
-        this.dzielnica = document.getString("dzielnica");
-        this.adres = document.getString("adres");
-        this.typ = document.getString("typ");
-    }
-
-    /**
-     * Tworzy odpowiedni typ nieruchomości z dokumentu MongoDB
-     */
-    public static Nieruchomosc fromDocument(Document document) {
-        if (document == null) {
-            return null;
-        }
-
-        String typ = document.getString("typ");
-        if ("mieszkanie".equals(typ)) {
-            return Mieszkanie.fromDocument(document);
-        } else if ("dom".equals(typ)) {
-            return Dom.fromDocument(document);
-        }
-        return null;
     }
 
     @Override

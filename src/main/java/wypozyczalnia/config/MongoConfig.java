@@ -2,10 +2,16 @@ package wypozyczalnia.config;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import wypozyczalnia.validation.SchemaValidation;
+
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 /**
  * Konfiguracja połączenia z MongoDB replica set.
@@ -13,7 +19,10 @@ import wypozyczalnia.validation.SchemaValidation;
 public class MongoConfig {
 
     private static final String DATABASE_NAME = "wypozyczalnia_db";
-    private static final String CONNECTION_STRING = "mongodb://mongo1:27017,mongo2:27018,mongo3:27019/wypozyczalnia_db?replicaSet=rs0";
+    private static final String CONNECTION_STRING = "mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=replica_set_single";
+    private static final String USERNAME = "admin";
+    private static final String PASSWORD = "adminpassword";
+    private static final String AUTH_DATABASE = "admin";
 
     private static MongoClient mongoClient;
     private static MongoDatabase database;
@@ -35,8 +44,18 @@ public class MongoConfig {
 
     private static void initializeDatabase() {
         ConnectionString connectionString = new ConnectionString(CONNECTION_STRING);
+
+        // Konfiguracja kodeku POJO dla automatycznego mapowania
+        CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
+        CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
+
+        // Konfiguracja uwierzytelnienia
+        MongoCredential credential = MongoCredential.createCredential(USERNAME, AUTH_DATABASE, PASSWORD.toCharArray());
+
         MongoClientSettings settings = MongoClientSettings.builder()
                 .applyConnectionString(connectionString)
+                .credential(credential)
+                .codecRegistry(codecRegistry)
                 .build();
 
         mongoClient = MongoClients.create(settings);

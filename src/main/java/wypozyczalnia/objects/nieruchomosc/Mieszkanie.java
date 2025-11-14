@@ -1,24 +1,38 @@
 package wypozyczalnia.objects.nieruchomosc;
 
-import org.bson.Document;
+import org.bson.codecs.pojo.annotations.BsonCreator;
+import org.bson.codecs.pojo.annotations.BsonDiscriminator;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 import java.util.Objects;
 
 /**
  * Klasa reprezentująca mieszkanie w wypożyczalni jako dokument MongoDB.
  * Dziedziczy po klasie Nieruchomosc.
  */
+@BsonDiscriminator(value = "mieszkanie")
 public class Mieszkanie extends Nieruchomosc {
 
+    @BsonProperty("liczbaPokoi")
     private int liczbaPokoi;
+
+    @BsonProperty("typOgrzewania")
     private String typOgrzewania;
+
+    @BsonProperty("czyUmeblowane")
     private boolean czyUmeblowane;
 
     public Mieszkanie() {
         super();
     }
 
-    public Mieszkanie(String miasto, String dzielnica, String adres,
-            int liczbaPokoi, String typOgrzewania, boolean czyUmeblowane) {
+    @BsonCreator
+    public Mieszkanie(
+            @BsonProperty("miasto") String miasto,
+            @BsonProperty("dzielnica") String dzielnica,
+            @BsonProperty("adres") String adres,
+            @BsonProperty("liczbaPokoi") int liczbaPokoi,
+            @BsonProperty("typOgrzewania") String typOgrzewania,
+            @BsonProperty("czyUmeblowane") boolean czyUmeblowane) {
         super(miasto, dzielnica, adres, "mieszkanie");
         this.liczbaPokoi = liczbaPokoi;
         this.typOgrzewania = Objects.requireNonNull(typOgrzewania, "Typ ogrzewania nie może być nullem");
@@ -47,31 +61,6 @@ public class Mieszkanie extends Nieruchomosc {
 
     public void setCzyUmeblowane(boolean czyUmeblowane) {
         this.czyUmeblowane = czyUmeblowane;
-    }
-
-    @Override
-    public Document toDocument() {
-        Document document = createBaseDocument();
-        document.append("liczbaPokoi", liczbaPokoi)
-                .append("typOgrzewania", typOgrzewania)
-                .append("czyUmeblowane", czyUmeblowane);
-        return document;
-    }
-
-    /**
-     * Tworzy obiekt Mieszkanie z dokumentu MongoDB
-     */
-    public static Mieszkanie fromDocument(Document document) {
-        if (document == null) {
-            return null;
-        }
-
-        Mieszkanie mieszkanie = new Mieszkanie();
-        mieszkanie.fillBaseFields(document);
-        mieszkanie.setLiczbaPokoi(document.getInteger("liczbaPokoi", 0));
-        mieszkanie.setTypOgrzewania(document.getString("typOgrzewania"));
-        mieszkanie.setCzyUmeblowane(document.getBoolean("czyUmeblowane", false));
-        return mieszkanie;
     }
 
     @Override

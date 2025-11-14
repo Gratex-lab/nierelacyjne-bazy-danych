@@ -1,24 +1,38 @@
 package wypozyczalnia.objects.nieruchomosc;
 
-import org.bson.Document;
+import org.bson.codecs.pojo.annotations.BsonCreator;
+import org.bson.codecs.pojo.annotations.BsonDiscriminator;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 import java.util.Objects;
 
 /**
  * Klasa reprezentująca dom w wypożyczalni jako dokument MongoDB. Dziedziczy po
  * klasie Nieruchomosc.
  */
+@BsonDiscriminator(value = "dom")
 public class Dom extends Nieruchomosc {
 
+    @BsonProperty("powierzchniaDzialki")
     private int powierzchniaDzialki;
+
+    @BsonProperty("typBudynku")
     private String typBudynku;
+
+    @BsonProperty("czyZOgrodem")
     private boolean czyZOgrodem;
 
     public Dom() {
         super();
     }
 
-    public Dom(String miasto, String dzielnica, String adres,
-            int powierzchniaDzialki, String typBudynku, boolean czyZOgrodem) {
+    @BsonCreator
+    public Dom(
+            @BsonProperty("miasto") String miasto,
+            @BsonProperty("dzielnica") String dzielnica,
+            @BsonProperty("adres") String adres,
+            @BsonProperty("powierzchniaDzialki") int powierzchniaDzialki,
+            @BsonProperty("typBudynku") String typBudynku,
+            @BsonProperty("czyZOgrodem") boolean czyZOgrodem) {
         super(miasto, dzielnica, adres, "dom");
         this.powierzchniaDzialki = powierzchniaDzialki;
         this.typBudynku = Objects.requireNonNull(typBudynku, "Typ budynku nie może być nullem");
@@ -47,31 +61,6 @@ public class Dom extends Nieruchomosc {
 
     public void setCzyZOgrodem(boolean czyZOgrodem) {
         this.czyZOgrodem = czyZOgrodem;
-    }
-
-    @Override
-    public Document toDocument() {
-        Document document = createBaseDocument();
-        document.append("powierzchniaDzialki", powierzchniaDzialki)
-                .append("typBudynku", typBudynku)
-                .append("czyZOgrodem", czyZOgrodem);
-        return document;
-    }
-
-    /**
-     * Tworzy obiekt Dom z dokumentu MongoDB
-     */
-    public static Dom fromDocument(Document document) {
-        if (document == null) {
-            return null;
-        }
-
-        Dom dom = new Dom();
-        dom.fillBaseFields(document);
-        dom.setPowierzchniaDzialki(document.getInteger("powierzchniaDzialki", 0));
-        dom.setTypBudynku(document.getString("typBudynku"));
-        dom.setCzyZOgrodem(document.getBoolean("czyZOgrodem", false));
-        return dom;
     }
 
     @Override

@@ -1,6 +1,8 @@
 package wypozyczalnia.objects;
 
-import org.bson.Document;
+import org.bson.codecs.pojo.annotations.BsonCreator;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
 import java.util.Objects;
 
@@ -10,20 +12,26 @@ import java.util.Objects;
  */
 public class Najemca {
 
+    @BsonId
     private ObjectId id;
+
+    @BsonProperty("login")
     private String login;
-    private boolean aktywny;
+
+    @BsonProperty("aktywny")
+    private boolean active;
 
     /**
      * Konstruktor bez argumentów
      */
     public Najemca() {
-        this.aktywny = true;
+        this.active = true;
     }
 
-    public Najemca(String login) {
+    @BsonCreator
+    public Najemca(@BsonProperty("login") String login) {
         this.login = Objects.requireNonNull(login, "Login nie może być nullem.");
-        this.aktywny = true;
+        this.active = true;
     }
 
     public ObjectId getId() {
@@ -42,40 +50,12 @@ public class Najemca {
         this.login = login;
     }
 
-    public boolean czyAktywny() {
-        return aktywny;
+    public boolean isActive() {
+        return active;
     }
 
-    public void setAktywny(boolean aktywny) {
-        this.aktywny = aktywny;
-    }
-
-    /**
-     * Konwertuje obiekt do dokumentu MongoDB
-     */
-    public Document toDocument() {
-        Document document = new Document();
-        if (id != null) {
-            document.append("_id", id);
-        }
-        document.append("login", login)
-                .append("aktywny", aktywny);
-        return document;
-    }
-
-    /**
-     * Tworzy obiekt z dokumentu MongoDB
-     */
-    public static Najemca fromDocument(Document document) {
-        if (document == null) {
-            return null;
-        }
-
-        Najemca najemca = new Najemca();
-        najemca.setId(document.getObjectId("_id"));
-        najemca.setLogin(document.getString("login"));
-        najemca.setAktywny(document.getBoolean("aktywny", true));
-        return najemca;
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     @Override
@@ -100,7 +80,7 @@ public class Najemca {
         return "Najemca{"
                 + "id=" + id
                 + ", login='" + login + '\''
-                + ", aktywny=" + aktywny
+                + ", aktywny=" + active
                 + '}';
     }
 }
