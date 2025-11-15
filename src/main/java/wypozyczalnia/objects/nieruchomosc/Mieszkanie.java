@@ -32,8 +32,9 @@ public class Mieszkanie extends Nieruchomosc {
             @BsonProperty("adres") String adres,
             @BsonProperty("liczbaPokoi") int liczbaPokoi,
             @BsonProperty("typOgrzewania") String typOgrzewania,
-            @BsonProperty("czyUmeblowane") boolean czyUmeblowane) {
-        super(miasto, dzielnica, adres, "mieszkanie");
+            @BsonProperty("czyUmeblowane") boolean czyUmeblowane,
+            @BsonProperty("version") Long version) {
+        super(miasto, dzielnica, adres, "mieszkanie", version);
         this.liczbaPokoi = liczbaPokoi;
         this.typOgrzewania = Objects.requireNonNull(typOgrzewania, "Typ ogrzewania nie może być nullem");
         this.czyUmeblowane = czyUmeblowane;

@@ -77,6 +77,22 @@ public class NieruchomoscManager {
     }
 
     /**
+     * Sprawdza dostępność i rezerwuje nieruchomość z użyciem blokady
+     * optymistycznej. Zapobiega równoczesnym wypożyczeniom tej samej
+     * nieruchomości.
+     */
+    public boolean sprobujZarezerwowac(Nieruchomosc nieruchomosc, LocalDateTime start, LocalDateTime koniec) {
+        if (start.isAfter(koniec) || start.isEqual(koniec)) {
+            throw new IllegalArgumentException("Data rozpoczęcia musi być przed datą zakończenia.");
+        }
+        try {
+            return nieruchomoscRepozytorium.sprobujZarezerwowac(nieruchomosc, start, koniec);
+        } catch (Exception e) {
+            throw new RuntimeException("Błąd podczas rezerwacji nieruchomości: " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * Aktualizuje nieruchomość w systemie.
      */
     public void aktualizujNieruchomosc(Nieruchomosc nieruchomosc) {

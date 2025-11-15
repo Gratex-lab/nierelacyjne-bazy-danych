@@ -32,8 +32,9 @@ public class Dom extends Nieruchomosc {
             @BsonProperty("adres") String adres,
             @BsonProperty("powierzchniaDzialki") int powierzchniaDzialki,
             @BsonProperty("typBudynku") String typBudynku,
-            @BsonProperty("czyZOgrodem") boolean czyZOgrodem) {
-        super(miasto, dzielnica, adres, "dom");
+            @BsonProperty("czyZOgrodem") boolean czyZOgrodem,
+            @BsonProperty("version") Long version) {
+        super(miasto, dzielnica, adres, "dom", version);
         this.powierzchniaDzialki = powierzchniaDzialki;
         this.typBudynku = Objects.requireNonNull(typBudynku, "Typ budynku nie może być nullem");
         this.czyZOgrodem = czyZOgrodem;

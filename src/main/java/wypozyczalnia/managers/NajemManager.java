@@ -34,37 +34,60 @@ public class NajemManager {
 
     /**
      * Dokonuje najmu nieruchomości przez najemcę. Sprawdza aktywność najemcy,
-     * dostępność nieruchomości i limit najmów.
+     * dostępność nieruchomości i limit najmów z użyciem blokady optymistycznej.
      */
     public void dokonajNajmu(Najemca najemca, Nieruchomosc nieruchomosc, LocalDateTime start, LocalDateTime koniec) {
-        try {
-            Najemca zarzadzanyNajemca = najemcaManager.znajdzNajemce(najemca.getId());
-            Nieruchomosc zarzadzanaNieruchomosc = nieruchomoscManager.znajdzNieruchomosc(nieruchomosc.getId());
+        int maxRetries = 3;
+        int retryCount = 0;
 
-            if (zarzadzanyNajemca == null || zarzadzanaNieruchomosc == null) {
-                throw new IllegalArgumentException("Najemca lub nieruchomość nie istnieje w bazie.");
+        while (retryCount < maxRetries) {
+            try {
+                Najemca zarzadzanyNajemca = najemcaManager.znajdzNajemce(najemca.getId());
+                Nieruchomosc zarzadzanaNieruchomosc = nieruchomoscManager.znajdzNieruchomosc(nieruchomosc.getId());
+
+                if (zarzadzanyNajemca == null || zarzadzanaNieruchomosc == null) {
+                    throw new IllegalArgumentException("Najemca lub nieruchomość nie istnieje w bazie.");
+                }
+
+                if (!zarzadzanyNajemca.isActive()) {
+                    throw new IllegalStateException("Najemca jest nieaktywny.");
+                }
+
+                long aktualnaLiczbaNajmow = liczAktywneNajmyNajemcy(zarzadzanyNajemca);
+                if (aktualnaLiczbaNajmow >= MAKS_LICZBA_NAJMOW) {
+                    throw new IllegalStateException("Najemca '" + zarzadzanyNajemca.getLogin() + "' osiągnął limit najmów.");
+                }
+
+                // Blokada optymistyczna przy rezerwacji
+                if (!nieruchomoscManager.sprobujZarezerwowac(zarzadzanaNieruchomosc, start, koniec)) {
+                    throw new IllegalArgumentException("Nieruchomość jest niedostępna w podanym przedziale czasowym.");
+                }
+
+                Najem nowyNajem = new Najem(zarzadzanyNajemca, zarzadzanaNieruchomosc, start, koniec);
+                najemRepozytorium.dodaj(nowyNajem);
+
+                System.out.println("Dokonano najmu nieruchomości: " + zarzadzanaNieruchomosc.getPelnyAdres());
+                return;
+
+            } catch (IllegalArgumentException | IllegalStateException e) {
+                throw new RuntimeException("Błąd podczas wykonywania najmu: " + e.getMessage(), e);
+            } catch (RuntimeException e) {
+                if (e.getMessage().contains("Konflikt blokady optymistycznej") && retryCount < maxRetries - 1) {
+                    retryCount++;
+                    System.out.println("Konflikt blokady optymistycznej, próba " + retryCount + "/" + maxRetries);
+                    try {
+                        Thread.sleep(50 + (retryCount * 25)); // Backoff z eksponencjalnym wzrostem
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Przerwano podczas oczekiwania na ponowną próbę", ie);
+                    }
+                    continue;
+                }
+                throw new RuntimeException("Błąd podczas wykonywania najmu: " + e.getMessage(), e);
             }
-
-            if (!zarzadzanyNajemca.isActive()) {
-                throw new IllegalStateException("Najemca jest nieaktywny.");
-            }
-
-            if (nieruchomoscManager.czyJestZajeta(zarzadzanaNieruchomosc, start, koniec)) {
-                throw new IllegalArgumentException("Nieruchomość jest niedostępna w podanym przedziale czasowym.");
-            }
-
-            long aktualnaLiczbaNajmow = liczAktywneNajmyNajemcy(zarzadzanyNajemca);
-            if (aktualnaLiczbaNajmow >= MAKS_LICZBA_NAJMOW) {
-                throw new IllegalStateException("Najemca '" + zarzadzanyNajemca.getLogin() + "' osiągnął limit najmów.");
-            }
-
-            Najem nowyNajem = new Najem(zarzadzanyNajemca, zarzadzanaNieruchomosc, start, koniec);
-            najemRepozytorium.dodaj(nowyNajem);
-
-            System.out.println("Dokonano najmu nieruchomości: " + zarzadzanaNieruchomosc.getPelnyAdres());
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            throw new RuntimeException("Błąd podczas wykonywania najmu: " + e.getMessage(), e);
         }
+
+        throw new RuntimeException("Nie udało się dokonać najmu po " + maxRetries + " próbach z powodu konfliktów blokady optymistycznej");
     }
 
     /**

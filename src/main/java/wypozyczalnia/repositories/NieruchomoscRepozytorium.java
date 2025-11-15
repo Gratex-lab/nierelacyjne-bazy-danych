@@ -65,6 +65,43 @@ public class NieruchomoscRepozytorium implements Repozytorium<Nieruchomosc> {
     }
 
     /**
+     * Sprawdza dostępność i zwiększa wersję nieruchomości. Rzuca
+     * wyjątek jeśli nieruchomość jest niedostępna lub wersja się nie zgadza.
+     */
+    public boolean sprobujZarezerwowac(Nieruchomosc nieruchomosc, LocalDateTime start, LocalDateTime koniec) {
+        Date startDate = Date.from(start.atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = Date.from(koniec.atZone(ZoneId.systemDefault()).toInstant());
+
+        // Sprawdź czy są konflikty czasowe
+        Document conflictQuery = new Document("nieruchomoscId", nieruchomosc.getId())
+                .append("$or", java.util.Arrays.asList(
+                        new Document("$and", java.util.Arrays.asList(
+                                new Document("dataRozpoczecia", new Document("$lt", endDate)),
+                                new Document("dataZakonczenia", new Document("$gt", startDate))
+                        ))
+                ));
+
+        if (najmyCollection.countDocuments(conflictQuery) > 0) {
+            return false; // Nieruchomość zajęta
+        }
+
+        // Zwiększ wersję (blokada optymistyczna)
+        Document filter = new Document("_id", nieruchomosc.getId())
+                .append("version", nieruchomosc.getVersion());
+        Document update = new Document("$inc", new Document("version", 1));
+
+        long updatedCount = collection.updateOne(filter, update).getModifiedCount();
+
+        if (updatedCount == 0) {
+            throw new RuntimeException("Konflikt blokady optymistycznej - spróbuj ponownie");
+        }
+
+        // Zaktualizuj wersję w obiekcie
+        nieruchomosc.setVersion(nieruchomosc.getVersion() + 1);
+        return true;
+    }
+
+    /**
      * Aktualizuje nieruchomość w bazie danych.
      */
     @Override

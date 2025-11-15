@@ -29,6 +29,9 @@ public abstract class Nieruchomosc {
     @BsonProperty("typ")
     protected String typ; // "mieszkanie" lub "dom"
 
+    @BsonProperty("version")
+    protected long version = 0;
+
     protected Nieruchomosc() {
     }
 
@@ -37,11 +40,13 @@ public abstract class Nieruchomosc {
             @BsonProperty("miasto") String miasto,
             @BsonProperty("dzielnica") String dzielnica,
             @BsonProperty("adres") String adres,
-            @BsonProperty("typ") String typ) {
+            @BsonProperty("typ") String typ,
+            @BsonProperty("version") Long version) {
         this.miasto = Objects.requireNonNull(miasto, "Miasto nie może być nullem");
         this.dzielnica = Objects.requireNonNull(dzielnica, "Dzielnica nie może być nullem");
         this.adres = Objects.requireNonNull(adres, "Adres nie może być nullem");
         this.typ = Objects.requireNonNull(typ, "Typ nie może być nullem");
+        this.version = version != null ? version : 0;
     }
 
     public ObjectId getId() {
@@ -82,6 +87,14 @@ public abstract class Nieruchomosc {
 
     public void setTyp(String typ) {
         this.typ = typ;
+    }
+
+    public long getVersion() {
+        return version;
+    }
+
+    public void setVersion(long version) {
+        this.version = version;
     }
 
     /**

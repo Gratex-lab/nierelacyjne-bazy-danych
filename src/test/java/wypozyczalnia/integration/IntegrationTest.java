@@ -67,7 +67,7 @@ class IntegrationTest {
         Najemca najemca = new Najemca("integrationTest");
         najemcaManager.dodajNajemce(najemca);
 
-        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Integration 1", 3, "gazowe", true);
+        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Integration 1", 3, "gazowe", true, 0L);
         nieruchomoscManager.dodajNieruchomosc(mieszkanie);
 
         LocalDateTime start = LocalDateTime.now().plusDays(1).withNano(0);
@@ -97,10 +97,10 @@ class IntegrationTest {
         Najemca najemca = new Najemca("limitTest");
         najemcaManager.dodajNajemce(najemca);
 
-        Mieszkanie mieszkanie1 = new Mieszkanie("Kraków", "Test", "ul. Limit 1", 2, "gazowe", false);
-        Mieszkanie mieszkanie2 = new Mieszkanie("Kraków", "Test", "ul. Limit 2", 2, "elektryczne", false);
-        Mieszkanie mieszkanie3 = new Mieszkanie("Kraków", "Test", "ul. Limit 3", 2, "centralne", false);
-        Mieszkanie mieszkanie4 = new Mieszkanie("Kraków", "Test", "ul. Limit 4", 2, "gazowe", false);
+        Mieszkanie mieszkanie1 = new Mieszkanie("Kraków", "Test", "ul. Limit 1", 2, "gazowe", false, 0L);
+        Mieszkanie mieszkanie2 = new Mieszkanie("Kraków", "Test", "ul. Limit 2", 2, "elektryczne", false, 0L);
+        Mieszkanie mieszkanie3 = new Mieszkanie("Kraków", "Test", "ul. Limit 3", 2, "centralne", false, 0L);
+        Mieszkanie mieszkanie4 = new Mieszkanie("Kraków", "Test", "ul. Limit 4", 2, "gazowe", false, 0L);
 
         nieruchomoscManager.dodajNieruchomosc(mieszkanie1);
         nieruchomoscManager.dodajNieruchomosc(mieszkanie2);
@@ -134,7 +134,7 @@ class IntegrationTest {
         najemca.setActive(false);
         najemcaManager.dodajNajemce(najemca);
 
-        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Nieaktywny 1", 2, "gazowe", false);
+        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Nieaktywny 1", 2, "gazowe", false, 0L);
         nieruchomoscManager.dodajNieruchomosc(mieszkanie);
 
         LocalDateTime start = LocalDateTime.now().plusDays(1).withNano(0);
@@ -150,7 +150,7 @@ class IntegrationTest {
         Najemca najemca = new Najemca("terminTest");
         najemcaManager.dodajNajemce(najemca);
 
-        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Termin 1", 2, "gazowe", false);
+        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Termin 1", 2, "gazowe", false, 0L);
         nieruchomoscManager.dodajNieruchomosc(mieszkanie);
 
         LocalDateTime start = LocalDateTime.now().plusDays(7).withNano(0);

@@ -48,16 +48,16 @@ public class Main {
         System.out.println("Dodawanie nieruchomości...");
 
         // Dodawanie nieruchomości - mieszkania
-        Mieszkanie mieszkanie1 = new Mieszkanie("Kraków", "Stare Miasto", "ul. Floriańska 12", 3, "gazowe", true);
-        Mieszkanie mieszkanie2 = new Mieszkanie("Kraków", "Kazimierz", "ul. Szeroka 5", 2, "elektryczne", false);
-        Mieszkanie mieszkanie3 = new Mieszkanie("Kraków", "Podgórze", "ul. Kalwaryjska 20", 4, "centralne", true);
-        Mieszkanie mieszkanie4 = new Mieszkanie("Warszawa", "Mokotów", "ul. Puławska 100", 2, "gazowe", false);
-        Mieszkanie mieszkanie5 = new Mieszkanie("Gdańsk", "Śródmieście", "ul. Długa 15", 3, "centralne", true);
+        Mieszkanie mieszkanie1 = new Mieszkanie("Kraków", "Stare Miasto", "ul. Floriańska 12", 3, "gazowe", true, 0L);
+        Mieszkanie mieszkanie2 = new Mieszkanie("Kraków", "Kazimierz", "ul. Szeroka 5", 2, "elektryczne", false, 0L);
+        Mieszkanie mieszkanie3 = new Mieszkanie("Kraków", "Podgórze", "ul. Kalwaryjska 20", 4, "centralne", true, 0L);
+        Mieszkanie mieszkanie4 = new Mieszkanie("Warszawa", "Mokotów", "ul. Puławska 100", 2, "gazowe", false, 0L);
+        Mieszkanie mieszkanie5 = new Mieszkanie("Gdańsk", "Śródmieście", "ul. Długa 15", 3, "centralne", true, 0L);
 
         // Dodawanie nieruchomości - domy
-        Dom dom1 = new Dom("Wieliczka", "Centrum", "ul. Kościuszki 15", 500, "jednorodzinny", true);
-        Dom dom2 = new Dom("Zakopane", "Centrum", "ul. Krupówki 30", 300, "letniskowy", false);
-        Dom dom3 = new Dom("Krynica", "Uzdrowisko", "ul. Zdrojowa 8", 250, "letniskowy", true);
+        Dom dom1 = new Dom("Wieliczka", "Centrum", "ul. Kościuszki 15", 500, "jednorodzinny", true, 0L);
+        Dom dom2 = new Dom("Zakopane", "Centrum", "ul. Krupówki 30", 300, "letniskowy", false, 0L);
+        Dom dom3 = new Dom("Krynica", "Uzdrowisko", "ul. Zdrojowa 8", 250, "letniskowy", true, 0L);
 
         nieruchomoscManager.dodajNieruchomosc(mieszkanie1);
         nieruchomoscManager.dodajNieruchomosc(mieszkanie2);

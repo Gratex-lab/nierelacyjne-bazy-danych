@@ -57,7 +57,7 @@ class NieruchomoscRepozytoriumTest {
 
     @Test
     void testDodajMieszkanie() {
-        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Centrum", "ul. Testowa 1", 3, "gazowe", true);
+        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Centrum", "ul. Testowa 1", 3, "gazowe", true, 0L);
 
         repository.dodaj(mieszkanie);
 
@@ -78,7 +78,7 @@ class NieruchomoscRepozytoriumTest {
 
     @Test
     void testDodajDom() {
-        Dom dom = new Dom("Warszawa", "Mokotów", "ul. Testowa Dom 1", 500, "jednorodzinny", true);
+        Dom dom = new Dom("Warszawa", "Mokotów", "ul. Testowa Dom 1", 500, "jednorodzinny", true, 0L);
 
         repository.dodaj(dom);
 
@@ -108,7 +108,7 @@ class NieruchomoscRepozytoriumTest {
 
     @Test
     void testCzyJestZajetaWolna() {
-        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Wolna 1", 2, "elektryczne", false);
+        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Wolna 1", 2, "elektryczne", false, 0L);
         repository.dodaj(mieszkanie);
 
         LocalDateTime start = LocalDateTime.now().plusDays(1).withNano(0);
@@ -121,7 +121,7 @@ class NieruchomoscRepozytoriumTest {
 
     @Test
     void testUsunNieruchomosc() {
-        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. DoUsuniecia 1", 1, "gazowe", false);
+        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. DoUsuniecia 1", 1, "gazowe", false, 0L);
         repository.dodaj(mieszkanie);
         ObjectId id = mieszkanie.getId();
 
@@ -133,7 +133,7 @@ class NieruchomoscRepozytoriumTest {
 
     @Test
     void testAktualizujNieruchomosc() {
-        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. DoAktualizacji 1", 2, "elektryczne", false);
+        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. DoAktualizacji 1", 2, "elektryczne", false, 0L);
         repository.dodaj(mieszkanie);
 
         mieszkanie.setCzyUmeblowane(true);

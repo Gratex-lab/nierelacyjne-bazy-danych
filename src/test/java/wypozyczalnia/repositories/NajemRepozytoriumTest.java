@@ -66,7 +66,7 @@ class NajemRepozytoriumTest {
         Najemca najemca = new Najemca("testNajemca");
         najemcaRepository.dodaj(najemca);
 
-        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Testowa 1", 2, "gazowe", false);
+        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Testowa 1", 2, "gazowe", false, 0L);
         nieruchomoscRepository.dodaj(mieszkanie);
 
         LocalDateTime start = LocalDateTime.now().plusDays(1).withNano(0);
@@ -100,7 +100,7 @@ class NajemRepozytoriumTest {
         Najemca najemca = new Najemca("testNajemca");
         najemcaRepository.dodaj(najemca);
 
-        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Testowa 1", 2, "gazowe", false);
+        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Testowa 1", 2, "gazowe", false, 0L);
         nieruchomoscRepository.dodaj(mieszkanie);
 
         LocalDateTime start = LocalDateTime.now().plusDays(1).withNano(0);
@@ -132,7 +132,7 @@ class NajemRepozytoriumTest {
         Najemca najemca = new Najemca("testNajemca");
         najemcaRepository.dodaj(najemca);
 
-        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Testowa 1", 2, "gazowe", false);
+        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Testowa 1", 2, "gazowe", false, 0L);
         nieruchomoscRepository.dodaj(mieszkanie);
 
         LocalDateTime start = LocalDateTime.now().plusDays(1).withNano(0);
@@ -154,7 +154,7 @@ class NajemRepozytoriumTest {
         Najemca najemca = new Najemca("testNajemca");
         najemcaRepository.dodaj(najemca);
 
-        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Testowa 1", 2, "gazowe", false);
+        Mieszkanie mieszkanie = new Mieszkanie("Kraków", "Test", "ul. Testowa 1", 2, "gazowe", false, 0L);
         nieruchomoscRepository.dodaj(mieszkanie);
 
         LocalDateTime start = LocalDateTime.now().plusDays(1).withNano(0);
