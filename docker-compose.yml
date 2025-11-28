@@ -16,7 +16,7 @@ services:
       - MONGO_INITDB_DATABASE=rentacar
     command: --config /etc/mongod.conf --port 27017
     healthcheck:
-      test: ["CMD", "mongosh", "--port", "27017", "--eval", "db.adminCommand('ping')"]
+      test: [ "CMD", "mongosh", "--port", "27017", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -38,7 +38,7 @@ services:
       - MONGO_INITDB_DATABASE=rentacar
     command: --config /etc/mongod.conf --port 27018
     healthcheck:
-      test: ["CMD", "mongosh", "--port", "27018", "--eval", "db.adminCommand('ping')"]
+      test: [ "CMD", "mongosh", "--port", "27018", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -60,7 +60,7 @@ services:
       - MONGO_INITDB_DATABASE=rentacar
     command: --config /etc/mongod.conf --port 27019
     healthcheck:
-      test: ["CMD", "mongosh", "--port", "27019", "--eval", "db.adminCommand('ping')"]
+      test: [ "CMD", "mongosh", "--port", "27019", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -79,9 +79,7 @@ services:
       mongo_3:
         condition: service_healthy
     command: >
-      mongosh --host mongodb1:27017 --username admin --password adminpassword --authenticationDatabase admin --eval
-      '
-      rs.initiate(
+      mongosh --host mongodb1:27017 --username admin --password adminpassword --authenticationDatabase admin --eval ' rs.initiate(
         {
           _id: "replica_set_single",
           version: 1,
@@ -91,8 +89,23 @@ services:
             { _id: 2, host : "mongodb3:27019" }
           ]
         }
-      );
-      '
+      ); '
+
+  redis-stack:
+    image: redis/redis-stack:latest
+    container_name: redis-cache
+    volumes:
+      - redis-stack-data:/bitnami/redis/data
+    ports:
+      - "8001:8001"
+      - "6379:6379"
+    networks:
+      - redisnet
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mongo-db-data-1:
@@ -101,6 +114,9 @@ volumes:
   mongo-configdb-data-2:
   mongo-db-data-3:
   mongo-configdb-data-3:
+  redis-stack-data:
+
 
 networks:
   mongonet: {}
+  redisnet: {}
