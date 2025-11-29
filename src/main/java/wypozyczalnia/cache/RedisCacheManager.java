@@ -11,6 +11,7 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Properties;
 
 import java.time.Duration;
@@ -31,32 +32,29 @@ public class RedisCacheManager implements CacheManager {
      */
     public RedisCacheManager() {
         Properties props = new Properties();
-        String host = "localhost";
-        int port = 6379;
-        int maxTotal = 20;
-        int maxIdle = 10;
-        int minIdle = 1;
-        boolean testOnBorrow = true;
-        boolean testWhileIdle = true;
-        long maxWaitMillis = 3000;
+        // Domyślne wartości
+        final String defaultHost = "localhost";
+        final int defaultPort = 6379;
+        final int maxTotal = 20;
+        final int maxIdle = 10;
+        final int minIdle = 1;
+        final boolean testOnBorrow = true;
+        final boolean testWhileIdle = true;
+        final long maxWaitMillis = 3000;
+        String uriString = null;
 
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("redis.properties")) {
             if (input != null) {
                 props.load(input);
-                host = props.getProperty("redis.host", host);
-                port = Integer.parseInt(props.getProperty("redis.port", String.valueOf(port)));
-                maxTotal = Integer.parseInt(props.getProperty("redis.maxTotal", String.valueOf(maxTotal)));
-                maxIdle = Integer.parseInt(props.getProperty("redis.maxIdle", String.valueOf(maxIdle)));
-                minIdle = Integer.parseInt(props.getProperty("redis.minIdle", String.valueOf(minIdle)));
-                testOnBorrow = Boolean.parseBoolean(props.getProperty("redis.testOnBorrow", String.valueOf(testOnBorrow)));
-                testWhileIdle = Boolean.parseBoolean(props.getProperty("redis.testWhileIdle", String.valueOf(testWhileIdle)));
-                maxWaitMillis = Long.parseLong(props.getProperty("redis.maxWaitMillis", String.valueOf(maxWaitMillis)));
+                // Odczytujemy tylko URI
+                uriString = props.getProperty("redis.uri");
             } else {
                 System.err.println("Nie znaleziono pliku redis.properties");
             }
         } catch (IOException e) {
             System.err.println("Błąd ładowania pliku redis.properties: " + e.getMessage());
         }
+
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxTotal(maxTotal);
         config.setMaxIdle(maxIdle);
@@ -64,7 +62,20 @@ public class RedisCacheManager implements CacheManager {
         config.setTestOnBorrow(testOnBorrow);
         config.setTestWhileIdle(testWhileIdle);
         config.setMaxWaitMillis(maxWaitMillis);
-        this.jedisPool = new JedisPool(config, host, port, 3000);
+
+        JedisPool pool;
+        if (uriString != null && !uriString.isBlank()) {
+            try {
+                URI uri = URI.create(uriString);
+                pool = new JedisPool(config, uri);
+            } catch (Exception e) {
+                System.err.println("Błąd parsowania redis.uri, fallback na domyślny host+port: " + e.getMessage());
+                pool = new JedisPool(config, defaultHost, defaultPort, 3000);
+            }
+        } else {
+            pool = new JedisPool(config, defaultHost, defaultPort, 3000);
+        }
+        this.jedisPool = pool;
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
         this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

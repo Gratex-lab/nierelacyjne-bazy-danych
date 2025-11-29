@@ -65,8 +65,8 @@ public class NieruchomoscRepozytorium implements Repozytorium<Nieruchomosc> {
     }
 
     /**
-     * Sprawdza dostępność i zwiększa wersję nieruchomości. Rzuca
-     * wyjątek jeśli nieruchomość jest niedostępna lub wersja się nie zgadza.
+     * Sprawdza dostępność i zwiększa wersję nieruchomości. Rzuca wyjątek jeśli
+     * nieruchomość jest niedostępna lub wersja się nie zgadza.
      */
     public boolean sprobujZarezerwowac(Nieruchomosc nieruchomosc, LocalDateTime start, LocalDateTime koniec) {
         Date startDate = Date.from(start.atZone(ZoneId.systemDefault()).toInstant());
