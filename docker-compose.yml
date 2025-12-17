@@ -1,66 +1,63 @@
 services:
-  mongo1:
-    image: mongo:7
-    restart: always
-    command: mongod --replSet rs0 --bind_ip_all --noauth
+  cassandra1:
+    image: cassandra:4.1
+    hostname: cassandra1
     ports:
-      - "27017:27017"
+      - "7000:7000"
+      - "9042:9042"
     volumes:
-      - mongo1_data:/data/db
+      - cassandra1_data:/var/lib/cassandra
     networks:
-      - mongo-cluster
+      - cassandranet
+    environment:
+      - CASSANDRA_SEEDS=cassandra1,cassandra2
+      - CASSANDRA_CLUSTER_NAME=nbd-cassandra-cluster
+      - CASSANDRA_DC=dc1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+    healthcheck:
+      test: [ "CMD-SHELL", "[ $$(nodetool statusgossip) = running ]" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
 
-  mongo2:
-    image: mongo:7
-    restart: always
-    command: mongod --replSet rs0 --bind_ip_all --noauth
+  cassandra2:
+    image: cassandra:4.1
+    hostname: cassandra2
     ports:
-      - "27018:27017"
+      - "7001:7000"
+      - "9043:9042"
     volumes:
-      - mongo2_data:/data/db
+      - cassandra2_data:/var/lib/cassandra
     networks:
-      - mongo-cluster
-
-  mongo3:
-    image: mongo:7
-    restart: always
-    command: mongod --replSet rs0 --bind_ip_all --noauth
-    ports:
-      - "27019:27017"
-    volumes:
-      - mongo3_data:/data/db
-    networks:
-      - mongo-cluster
-
-  mongo-setup:
-    image: mongo:7
+      - cassandranet
+    environment:
+      - CASSANDRA_SEEDS=cassandra1,cassandra2
+      - CASSANDRA_CLUSTER_NAME=nbd-cassandra-cluster
+      - CASSANDRA_DC=dc1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
     depends_on:
-      - mongo1
-      - mongo2
-      - mongo3
-    networks:
-      - mongo-cluster
-    command: >
-      bash -c "
-        sleep 10;
-        mongosh --host mongo1:27017 --eval '
-          rs.initiate({
-            _id: \"rs0\",
-            members: [
-              { _id: 0, host: \"mongo1:27017\" },
-              { _id: 1, host: \"mongo2:27017\" },
-              { _id: 2, host: \"mongo3:27017\" }
-            ]
-          });
-        ';
-        echo 'Replica set initiated';
-      "
+      cassandra1:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "[ $$(nodetool statusgossip) = running ]" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
 
 volumes:
-  mongo1_data:
-  mongo2_data:
-  mongo3_data:
+  cassandra1_data:
+    driver: local
+  cassandra2_data:
+    driver: local
 
 networks:
-  mongo-cluster:
+  cassandranet:
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.24.0.0/16
