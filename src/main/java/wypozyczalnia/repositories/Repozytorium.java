@@ -22,4 +22,9 @@ public interface Repozytorium<T> {
      * Znajduje encję po jej UUID.
      */
     T znajdz(UUID uuid);
+
+    /**
+     * Aktualizuje istniejącą encję w bazie danych.
+     */
+    void aktualizuj(T obiekt);
 }

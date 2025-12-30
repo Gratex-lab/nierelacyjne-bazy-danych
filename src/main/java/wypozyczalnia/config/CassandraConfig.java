@@ -103,8 +103,7 @@ public class CassandraConfig {
                 "CREATE TABLE IF NOT EXISTS najemcy ("
                 + "id UUID PRIMARY KEY, "
                 + "login TEXT, "
-                + "aktywny BOOLEAN, "
-                + "version BIGINT"
+                + "aktywny BOOLEAN"
                 + ")");
 
         // Tabela najemców wg loginu (denormalizacja dla szybkich wyszukiwań)
@@ -112,8 +111,7 @@ public class CassandraConfig {
                 "CREATE TABLE IF NOT EXISTS najemcy_by_login ("
                 + "login TEXT PRIMARY KEY, "
                 + "id UUID, "
-                + "aktywny BOOLEAN, "
-                + "version BIGINT"
+                + "aktywny BOOLEAN"
                 + ")");
 
         // Tabela nieruchomości
@@ -129,8 +127,7 @@ public class CassandraConfig {
                 + "czy_umeblowane BOOLEAN, "
                 + "powierzchnia_dzialki INT, "
                 + "typ_budynku TEXT, "
-                + "czy_z_ogrodem BOOLEAN, "
-                + "version BIGINT"
+                + "czy_z_ogrodem BOOLEAN"
                 + ")");
 
         // Tabela najmów
@@ -142,8 +139,7 @@ public class CassandraConfig {
                 + "nieruchomosc_id UUID, "
                 + "nieruchomosc_adres TEXT, "
                 + "data_rozpoczecia TIMESTAMP, "
-                + "data_zakonczenia TIMESTAMP, "
-                + "version BIGINT"
+                + "data_zakonczenia TIMESTAMP"
                 + ")");
 
         // Tabela najmów wg najemcy (denormalizacja)
@@ -156,7 +152,6 @@ public class CassandraConfig {
                 + "nieruchomosc_adres TEXT, "
                 + "data_rozpoczecia TIMESTAMP, "
                 + "data_zakonczenia TIMESTAMP, "
-                + "version BIGINT, "
                 + "PRIMARY KEY (najemca_id, nieruchomosc_id)"
                 + ")");
 
@@ -170,7 +165,6 @@ public class CassandraConfig {
                 + "najemca_id UUID, "
                 + "najemca_login TEXT, "
                 + "nieruchomosc_adres TEXT, "
-                + "version BIGINT, "
                 + "PRIMARY KEY (nieruchomosc_id, data_rozpoczecia)"
                 + ")");
     }

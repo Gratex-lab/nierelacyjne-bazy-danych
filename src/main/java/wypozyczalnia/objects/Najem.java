@@ -3,72 +3,109 @@ package wypozyczalnia.objects;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
-import jakarta.persistence.*;
+
 import wypozyczalnia.objects.nieruchomosc.Nieruchomosc;
 
 /**
- * Klasa reprezentująca najem nieruchomości przez najemcę. Obsługuje transakcje
- * ACID i optymistyczne blokady wersji.
+ * Klasa reprezentująca najem nieruchomości przez najemcę.
  */
-@Entity
-@Table(name = "najmy")
 public class Najem {
 
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "najemca_id", nullable = false)
-    private Najemca najemca;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "nieruchomosc_id", nullable = false)
-    private Nieruchomosc nieruchomosc;
-
-    @Column(name = "data_rozpoczecia", nullable = false)
+    private UUID najemcaId;
+    private String najemcaLogin;
+    private UUID nieruchomoscId;
+    private String nieruchomoscAdres;
     private LocalDateTime dataRozpoczecia;
-
-    @Column(name = "data_zakonczenia", nullable = false)
     private LocalDateTime dataZakonczenia;
 
-    @Version
-    @Column(name = "version")
-    private Long version;
-
-    protected Najem() {
+    public Najem() {
     }
 
     public Najem(Najemca najemca, Nieruchomosc nieruchomosc, LocalDateTime dataRozpoczecia, LocalDateTime dataZakonczenia) {
-        this.najemca = Objects.requireNonNull(najemca, "Najemca nie może być nullem");
-        this.nieruchomosc = Objects.requireNonNull(nieruchomosc, "Nieruchomość nie może być nullem");
-        this.dataRozpoczecia = Objects.requireNonNull(dataRozpoczecia, "Data rozpoczęcia nie może być nullem");
-        this.dataZakonczenia = Objects.requireNonNull(dataZakonczenia, "Data zakończenia nie może być nullem");
+        Objects.requireNonNull(najemca, "Najemca nie może być nullem");
+        Objects.requireNonNull(nieruchomosc, "Nieruchomość nie może być nullem");
+        Objects.requireNonNull(dataRozpoczecia, "Data rozpoczęcia nie może być nullem");
+        Objects.requireNonNull(dataZakonczenia, "Data zakończenia nie może być nullem");
 
         if (dataZakonczenia.isBefore(dataRozpoczecia)) {
             throw new IllegalArgumentException("Data zakończenia musi być po dacie rozpoczęcia.");
         }
+
+        this.id = UUID.randomUUID();
+        this.najemcaId = najemca.getId();
+        this.najemcaLogin = najemca.getLogin();
+        this.nieruchomoscId = nieruchomosc.getId();
+        this.nieruchomoscAdres = nieruchomosc.getPelnyAdres();
+        this.dataRozpoczecia = dataRozpoczecia;
+        this.dataZakonczenia = dataZakonczenia;
+    }
+
+    public Najem(UUID id, UUID najemcaId, String najemcaLogin, UUID nieruchomoscId,
+            String nieruchomoscAdres, LocalDateTime dataRozpoczecia, LocalDateTime dataZakonczenia) {
+        this.id = id;
+        this.najemcaId = najemcaId;
+        this.najemcaLogin = najemcaLogin;
+        this.nieruchomoscId = nieruchomoscId;
+        this.nieruchomoscAdres = nieruchomoscAdres;
+        this.dataRozpoczecia = dataRozpoczecia;
+        this.dataZakonczenia = dataZakonczenia;
     }
 
     public UUID getId() {
         return id;
     }
 
-    public Najemca getNajemca() {
-        return najemca;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
-    public Nieruchomosc getNieruchomosc() {
-        return nieruchomosc;
+    public UUID getNajemcaId() {
+        return najemcaId;
+    }
+
+    public void setNajemcaId(UUID najemcaId) {
+        this.najemcaId = najemcaId;
+    }
+
+    public String getNajemcaLogin() {
+        return najemcaLogin;
+    }
+
+    public void setNajemcaLogin(String najemcaLogin) {
+        this.najemcaLogin = najemcaLogin;
+    }
+
+    public UUID getNieruchomoscId() {
+        return nieruchomoscId;
+    }
+
+    public void setNieruchomoscId(UUID nieruchomoscId) {
+        this.nieruchomoscId = nieruchomoscId;
+    }
+
+    public String getNieruchomoscAdres() {
+        return nieruchomoscAdres;
+    }
+
+    public void setNieruchomoscAdres(String nieruchomoscAdres) {
+        this.nieruchomoscAdres = nieruchomoscAdres;
     }
 
     public LocalDateTime getDataRozpoczecia() {
         return dataRozpoczecia;
     }
 
+    public void setDataRozpoczecia(LocalDateTime dataRozpoczecia) {
+        this.dataRozpoczecia = dataRozpoczecia;
+    }
+
     public LocalDateTime getDataZakonczenia() {
         return dataZakonczenia;
+    }
+
+    public void setDataZakonczenia(LocalDateTime dataZakonczenia) {
+        this.dataZakonczenia = dataZakonczenia;
     }
 
     @Override
@@ -80,11 +117,24 @@ public class Najem {
             return false;
         }
         Najem najem = (Najem) o;
-        return id.equals(najem.id);
+        return Objects.equals(id, najem.id);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Najem{"
+                + "id=" + id
+                + ", najemcaId=" + najemcaId
+                + ", najemcaLogin='" + najemcaLogin + '\''
+                + ", nieruchomoscId=" + nieruchomoscId
+                + ", nieruchomoscAdres='" + nieruchomoscAdres + '\''
+                + ", dataRozpoczecia=" + dataRozpoczecia
+                + ", dataZakonczenia=" + dataZakonczenia
+                + '}';
     }
 }
