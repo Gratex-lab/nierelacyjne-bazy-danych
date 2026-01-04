@@ -1,68 +1,54 @@
 package wypozyczalnia.managers;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
-import wypozyczalnia.objects.nieruchomosc.Nieruchomosc;
-import wypozyczalnia.objects.nieruchomosc.Mieszkanie;
-import wypozyczalnia.objects.nieruchomosc.Dom;
-import wypozyczalnia.repositories.NieruchomoscRepozytorium;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.datastax.oss.driver.api.core.CqlSession;
+
+import wypozyczalnia.objects.nieruchomosc.Dom;
+import wypozyczalnia.objects.nieruchomosc.Mieszkanie;
+import wypozyczalnia.objects.nieruchomosc.Nieruchomosc;
+import wypozyczalnia.repositories.NieruchomoscRepozytorium;
+
 /**
- * Manager obsługujący logikę biznesową zarządzania nieruchomościami. Obsługuje
- * różne typy nieruchomości z wykorzystaniem polimorfizmu.
+ * Manager obsługujący logikę biznesową zarządzania nieruchomościami.
  */
 public class NieruchomoscManager {
 
-    private final EntityManager entityManager;
     private final NieruchomoscRepozytorium nieruchomoscRepozytorium;
 
-    public NieruchomoscManager(EntityManager entityManager) {
-        this.entityManager = entityManager;
-        this.nieruchomoscRepozytorium = new NieruchomoscRepozytorium(entityManager);
+    public NieruchomoscManager(CqlSession session) {
+        this.nieruchomoscRepozytorium = new NieruchomoscRepozytorium(session);
     }
 
     /**
      * Dodaje nową nieruchomość do wypożyczalni.
      */
     public void dodajNieruchomosc(Nieruchomosc nieruchomosc) {
-        EntityTransaction tx = entityManager.getTransaction();
         try {
-            tx.begin();
-            Nieruchomosc n = nieruchomoscRepozytorium.znajdz(nieruchomosc.getId());
-            if (n != null) {
-                throw new IllegalArgumentException("Nieruchomość " + nieruchomosc.getPelnyAdres() + " o ID '" + nieruchomosc.getId() + "' już istnieje.");
-            }
             nieruchomoscRepozytorium.dodaj(nieruchomosc);
-            tx.commit();
+
+            String typ = nieruchomosc instanceof Mieszkanie ? "Mieszkanie"
+                    : (nieruchomosc instanceof Dom ? "Dom" : "Nieruchomość");
+            System.out.println("Dodano nieruchomość: " + nieruchomosc.getPelnyAdres() + " (" + typ + ")");
         } catch (IllegalArgumentException e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
+            System.err.println("Błąd podczas dodawania nieruchomości: " + e.getMessage());
             throw e;
+        } catch (Exception e) {
+            System.err.println("Nieoczekiwany błąd podczas dodawania nieruchomości: " + e.getMessage());
+            throw new RuntimeException("Nie udało się dodać nieruchomości", e);
         }
-        String typ = nieruchomosc instanceof Mieszkanie ? "Mieszkanie"
-                : (nieruchomosc instanceof Dom ? "Dom" : "Nieruchomość");
-        System.out.println("Dodano nieruchomość: " + nieruchomosc.getPelnyAdres() + " (" + typ + ")");
     }
 
     /**
      * Znajduje nieruchomość po jej UUID.
      */
     public Nieruchomosc znajdzNieruchomosc(UUID nieruchomoscUuid) {
-        EntityTransaction tx = entityManager.getTransaction();
         try {
-            tx.begin();
-            Nieruchomosc n = nieruchomoscRepozytorium.znajdz(nieruchomoscUuid);
-            tx.commit();
-            return n;
+            return nieruchomoscRepozytorium.znajdz(nieruchomoscUuid);
         } catch (Exception e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-            throw e;
+            System.err.println("Błąd podczas wyszukiwania nieruchomości: " + e.getMessage());
+            throw new RuntimeException("Nie udało się wyszukać nieruchomości", e);
         }
     }
 
@@ -70,28 +56,42 @@ public class NieruchomoscManager {
      * Usuwa nieruchomość z wypożyczalni.
      */
     public void usunNieruchomosc(Nieruchomosc nieruchomosc) {
-        EntityTransaction tx = entityManager.getTransaction();
         try {
-            tx.begin();
             nieruchomoscRepozytorium.usun(nieruchomosc);
-            tx.commit();
+            System.out.println("Usunięto nieruchomość: " + nieruchomosc.getPelnyAdres() + ".");
         } catch (Exception e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-            throw e;
+            System.err.println("Błąd podczas usuwania nieruchomości: " + e.getMessage());
+            throw new RuntimeException("Nie udało się usunąć nieruchomości", e);
         }
-        System.out.println("Usunięto nieruchomość: " + nieruchomosc.getPelnyAdres() + ".");
     }
 
     /**
-     * Sprawdza czy nieruchomość jest zajęta w podanym okresie. Używa izolacji
-     * transakcji dla zapewnienia spójności danych.
+     * Sprawdza czy nieruchomość jest zajęta w podanym okresie. Używa
+     * denormalizowanej tabeli dla szybkich sprawdzeń dostępności.
      */
     public boolean czyJestZajeta(Nieruchomosc nieruchomosc, LocalDateTime start, LocalDateTime koniec) {
         if (start.isAfter(koniec) || start.isEqual(koniec)) {
             throw new IllegalArgumentException("Data rozpoczęcia musi być przed datą zakończenia.");
         }
-        return nieruchomoscRepozytorium.czyJestZajeta(nieruchomosc, start, koniec);
+
+        try {
+            return nieruchomoscRepozytorium.czyJestZajeta(nieruchomosc, start, koniec);
+        } catch (Exception e) {
+            System.err.println("Błąd podczas sprawdzania dostępności nieruchomości: " + e.getMessage());
+            throw new RuntimeException("Nie udało się sprawdzić dostępności nieruchomości", e);
+        }
+    }
+
+    /**
+     * Aktualizuje nieruchomość.
+     */
+    public void aktualizujNieruchomosc(Nieruchomosc nieruchomosc) {
+        try {
+            nieruchomoscRepozytorium.aktualizuj(nieruchomosc);
+            System.out.println("Zaktualizowano nieruchomość: " + nieruchomosc.getPelnyAdres());
+        } catch (Exception e) {
+            System.err.println("Błąd podczas aktualizacji nieruchomości: " + e.getMessage());
+            throw new RuntimeException("Nie udało się zaktualizować nieruchomości", e);
+        }
     }
 }

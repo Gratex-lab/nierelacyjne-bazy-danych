@@ -1,66 +1,108 @@
 package wypozyczalnia.managers;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
+import java.util.UUID;
+
+import com.datastax.oss.driver.api.core.CqlSession;
+
 import wypozyczalnia.objects.Najemca;
 import wypozyczalnia.repositories.NajemcaRepozytorium;
 
-import java.util.UUID;
-
 /**
  * Manager obsługujący logikę biznesową zarządzania najemcami wypożyczalni.
- * Zapewnia unikalność loginów i transakcyjność operacji.
  */
 public class NajemcaManager {
 
-    private final EntityManager entityManager;
     private final NajemcaRepozytorium najemcaRepozytorium;
 
-    public NajemcaManager(EntityManager entityManager) {
-        this.entityManager = entityManager;
-        this.najemcaRepozytorium = new NajemcaRepozytorium(entityManager);
+    public NajemcaManager(CqlSession session) {
+        this.najemcaRepozytorium = new NajemcaRepozytorium(session);
     }
 
     /**
      * Dodaje nowego najemcę do systemu. Sprawdza unikalność loginu.
      */
     public void dodajNajemce(Najemca najemca) {
-        EntityTransaction tx = entityManager.getTransaction();
         try {
-            tx.begin();
-            Najemca n = najemcaRepozytorium.znajdzLogin(najemca.getLogin());
-            if (n != null) {
-                throw new IllegalArgumentException("Najemca z loginem '" + najemca.getLogin() + "' już istnieje.");
-            }
             najemcaRepozytorium.dodaj(najemca);
-            tx.commit();
+            System.out.println("Dodano najemcę: " + najemca.getLogin());
         } catch (IllegalArgumentException e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
+            System.err.println("Błąd podczas dodawania najemcy: " + e.getMessage());
             throw e;
+        } catch (Exception e) {
+            System.err.println("Nieoczekiwany błąd podczas dodawania najemcy: " + e.getMessage());
+            throw new RuntimeException("Nie udało się dodać najemcy", e);
         }
-        System.out.println("Dodano najemcę: " + najemca.getLogin());
     }
 
     /**
      * Znajduje najemcę po jego UUID.
      */
     public Najemca znajdzNajemce(UUID najemcaUuid) {
-        EntityTransaction tx = entityManager.getTransaction();
         try {
-            tx.begin();
-            Najemca n = najemcaRepozytorium.znajdz(najemcaUuid);
-            if (n == null) {
+            Najemca najemca = najemcaRepozytorium.znajdz(najemcaUuid);
+            if (najemca == null) {
                 throw new IllegalArgumentException("Najemca o ID '" + najemcaUuid + "' nie istnieje.");
             }
-            tx.commit();
-            return n;
+            return najemca;
         } catch (IllegalArgumentException e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
+            System.err.println("Błąd podczas wyszukiwania najemcy: " + e.getMessage());
             throw e;
+        } catch (Exception e) {
+            System.err.println("Nieoczekiwany błąd podczas wyszukiwania najemcy: " + e.getMessage());
+            throw new RuntimeException("Nie udało się wyszukać najemcy", e);
+        }
+    }
+
+    /**
+     * Znajduje najemcę po loginie.
+     */
+    public Najemca znajdzNajemcePoLoginie(String login) {
+        try {
+            return najemcaRepozytorium.znajdzLogin(login);
+        } catch (Exception e) {
+            System.err.println("Nieoczekiwany błąd podczas wyszukiwania najemcy po loginie: " + e.getMessage());
+            throw new RuntimeException("Nie udało się wyszukać najemcy po loginie", e);
+        }
+    }
+
+    /**
+     * Deaktywuje najemcę.
+     */
+    public void deaktywujNajemce(Najemca najemca) {
+        try {
+            najemca.setAktywny(false);
+            najemcaRepozytorium.aktualizuj(najemca);
+            System.out.println("Deaktywowano najemcę: " + najemca.getLogin());
+        } catch (Exception e) {
+            System.err.println("Błąd podczas deaktywacji najemcy: " + e.getMessage());
+            throw new RuntimeException("Nie udało się deaktywować najemcy", e);
+        }
+    }
+
+    /**
+     * Aktywuje najemcę.
+     */
+    public void aktywujNajemce(Najemca najemca) {
+        try {
+            najemca.setAktywny(true);
+            najemcaRepozytorium.aktualizuj(najemca);
+            System.out.println("Aktywowano najemcę: " + najemca.getLogin());
+        } catch (Exception e) {
+            System.err.println("Błąd podczas aktywacji najemcy: " + e.getMessage());
+            throw new RuntimeException("Nie udało się aktywować najemcy", e);
+        }
+    }
+
+    /**
+     * Usuwa najemcę.
+     */
+    public void usunNajemce(Najemca najemca) {
+        try {
+            najemcaRepozytorium.usun(najemca);
+            System.out.println("Usunięto najemcę: " + najemca.getLogin());
+        } catch (Exception e) {
+            System.err.println("Błąd podczas usuwania najemcy: " + e.getMessage());
+            throw new RuntimeException("Nie udało się usunąć najemcy", e);
         }
     }
 }
