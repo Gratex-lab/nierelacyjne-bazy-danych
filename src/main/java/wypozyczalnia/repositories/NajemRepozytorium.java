@@ -33,6 +33,9 @@ public class NajemRepozytorium implements Repozytorium<Najem> {
     private final PreparedStatement deleteByUuid;
     private final PreparedStatement deleteByNajemcaAndNieruchomosc;
     private final PreparedStatement deleteByNieruchomoscAndData;
+    private final PreparedStatement updateNajem;
+    private final PreparedStatement updateNajemByNajemca;
+    private final PreparedStatement updateNajemByNieruchomosc;
 
     public NajemRepozytorium(CqlSession session) {
         this.session = session;
@@ -68,6 +71,18 @@ public class NajemRepozytorium implements Repozytorium<Najem> {
 
         this.deleteByNieruchomoscAndData = session.prepare(
                 "DELETE FROM najmy_by_nieruchomosc WHERE nieruchomosc_id = ? AND data_rozpoczecia = ?");
+
+        this.updateNajem = session.prepare(
+                "UPDATE najmy SET najemca_id=?, najemca_login=?, nieruchomosc_id=?, "
+                + "nieruchomosc_adres=?, data_rozpoczecia=?, data_zakonczenia=? WHERE id=?");
+
+        this.updateNajemByNajemca = session.prepare(
+                "UPDATE najmy_by_najemca SET id=?, najemca_login=?, nieruchomosc_adres=?, "
+                + "data_rozpoczecia=?, data_zakonczenia=? WHERE najemca_id=? AND nieruchomosc_id=?");
+
+        this.updateNajemByNieruchomosc = session.prepare(
+                "UPDATE najmy_by_nieruchomosc SET data_zakonczenia=?, id=?, najemca_id=?, "
+                + "najemca_login=?, nieruchomosc_adres=? WHERE nieruchomosc_id=? AND data_rozpoczecia=?");
     }
 
     /**
@@ -229,6 +244,41 @@ public class NajemRepozytorium implements Repozytorium<Najem> {
             throw new IllegalArgumentException("Nie można zaktualizować najmu bez ID");
         }
 
-        dodaj(najem);
+        // Sprawdzenie czy najem istnieje
+        Najem istniejacy = znajdz(najem.getId());
+        if (istniejacy == null) {
+            throw new IllegalArgumentException("Najem o ID '" + najem.getId() + "' nie istnieje.");
+        }
+
+        // Aktualizacja we wszystkich trzech tabelach
+        session.execute(updateNajem.bind(
+                najem.getNajemcaId(),
+                najem.getNajemcaLogin(),
+                najem.getNieruchomoscId(),
+                najem.getNieruchomoscAdres(),
+                localDateTimeToInstant(najem.getDataRozpoczecia()),
+                localDateTimeToInstant(najem.getDataZakonczenia()),
+                najem.getId()
+        ).setConsistencyLevel(config.getWriteConsistency()));
+
+        session.execute(updateNajemByNajemca.bind(
+                najem.getId(),
+                najem.getNajemcaLogin(),
+                najem.getNieruchomoscAdres(),
+                localDateTimeToInstant(najem.getDataRozpoczecia()),
+                localDateTimeToInstant(najem.getDataZakonczenia()),
+                najem.getNajemcaId(),
+                najem.getNieruchomoscId()
+        ).setConsistencyLevel(config.getWriteConsistency()));
+
+        session.execute(updateNajemByNieruchomosc.bind(
+                localDateTimeToInstant(najem.getDataZakonczenia()),
+                najem.getId(),
+                najem.getNajemcaId(),
+                najem.getNajemcaLogin(),
+                najem.getNieruchomoscAdres(),
+                najem.getNieruchomoscId(),
+                localDateTimeToInstant(najem.getDataRozpoczecia())
+        ).setConsistencyLevel(config.getWriteConsistency()));
     }
 }
