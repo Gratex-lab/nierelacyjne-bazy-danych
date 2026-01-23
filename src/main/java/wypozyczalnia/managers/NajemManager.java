@@ -1,17 +1,20 @@
 package wypozyczalnia.managers;
 
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
-import wypozyczalnia.objects.Najem;
-import wypozyczalnia.objects.Najemca;
-import wypozyczalnia.objects.nieruchomosc.Nieruchomosc;
-import wypozyczalnia.repositories.NajemRepozytorium;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+
+import org.bson.Document;
+
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+
+import wypozyczalnia.kafka.WypozyczenieProducer;
+import wypozyczalnia.objects.Najem;
+import wypozyczalnia.objects.Najemca;
+import wypozyczalnia.objects.nieruchomosc.Nieruchomosc;
+import wypozyczalnia.repositories.NajemRepozytorium;
 
 /**
  * Manager obsługujący logikę biznesową najmu nieruchomości w MongoDB. Zapewnia
@@ -23,6 +26,7 @@ public class NajemManager {
     private final NajemRepozytorium najemRepozytorium;
     private final NajemcaManager najemcaManager;
     private final NieruchomoscManager nieruchomoscManager;
+    private final WypozyczenieProducer wypozyczenieProducer;
     private static final int MAKS_LICZBA_NAJMOW = 3;
 
     public NajemManager(MongoDatabase database, NajemcaManager najemcaManager, NieruchomoscManager nieruchomoscManager) {
@@ -30,6 +34,7 @@ public class NajemManager {
         this.najemRepozytorium = new NajemRepozytorium(database);
         this.najemcaManager = najemcaManager;
         this.nieruchomoscManager = nieruchomoscManager;
+        this.wypozyczenieProducer = new WypozyczenieProducer();
     }
 
     /**
@@ -65,6 +70,15 @@ public class NajemManager {
 
                 Najem nowyNajem = new Najem(zarzadzanyNajemca, zarzadzanaNieruchomosc, start, koniec);
                 najemRepozytorium.dodaj(nowyNajem);
+
+                // Wysyłanie do kafki
+                wypozyczenieProducer.sendWypozyczenie(
+                        nowyNajem.getId().toString(),
+                        nowyNajem.getNajemcaId().toString(),
+                        nowyNajem.getNieruchomoscId().toString(),
+                        nowyNajem.getDataRozpoczecia().toString(),
+                        nowyNajem.getDataZakonczenia().toString()
+                );
 
                 System.out.println("Dokonano najmu nieruchomości: " + zarzadzanaNieruchomosc.getPelnyAdres());
                 return;
@@ -122,5 +136,11 @@ public class NajemManager {
                 .append("dataZakonczenia", new Document("$gt", terazDate));
 
         return collection.countDocuments(query);
+    }
+
+    public void close() {
+        if (wypozyczenieProducer != null) {
+            wypozyczenieProducer.close();
+        }
     }
 }
